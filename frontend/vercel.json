@@ -2,11 +2,20 @@
   "builds": [
     {
       "src": "package.json",
-      "use": "@vercel/node",
-      "config": { "includeFiles": ["build/**"] }
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build"
+      }
     }
   ],
   "routes": [
-    { "src": "/(.*)", "dest": "build/index.html" }
+    {
+      "src": "/api/(.*)",
+      "dest": "https://raffle-hub-backend.vercel.app/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
   ]
 }
