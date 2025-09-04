@@ -59,7 +59,7 @@ const CreateRaffle = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:5000/api/raffles/create', formData, {
+      const response = await axios.post('https://raffle-backend-nu.vercel.app/api/raffles/create', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,

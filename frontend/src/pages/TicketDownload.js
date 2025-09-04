@@ -26,7 +26,7 @@ const TicketDownload = () => {
       }
       try {
         console.log(`Fetching ticket with raffle ID: ${id}, ticketNumber: ${ticketNumber}`);
-        const response = await axios.get(`http://localhost:5000/api/raffles/${id}/ticket/${ticketNumber}`);
+        const response = await axios.get(`https://raffle-backend-nu.vercel.app/api/raffles/${id}/ticket/${ticketNumber}`);
         console.log('Ticket data:', response.data);
         setTicketData({ ...response.data.raffle, participants: [response.data.participant] });
       } catch (err) {
@@ -46,7 +46,7 @@ const TicketDownload = () => {
       return;
     }
     axios
-      .get(`http://localhost:5000/api/raffles/${id}/ticket/${ticketData.participants[0].ticketNumber}`, { responseType: 'blob' })
+      .get(`https://raffle-backend-nu.vercel.app/api/raffles/${id}/ticket/${ticketData.participants[0].ticketNumber}`, { responseType: 'blob' })
       .then((response) => {
         const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
         const link = document.createElement('a');
@@ -107,7 +107,7 @@ const TicketDownload = () => {
           </p>
           <div className="my-6">
             <QRCodeCanvas
-              value={`http://localhost:3000/ticket/${id}?ticketNumber=${encodeURIComponent(participant.ticketNumber)}`}
+              value={`https://raffle-frontend-xi.vercel.app/ticket/${id}?ticketNumber=${encodeURIComponent(participant.ticketNumber)}`}
               size={150}
               className="mx-auto"
             />

@@ -13,7 +13,7 @@ const LandingPage = () => {
     const fetchRaffles = async () => {
       try {
         console.log("Fetching raffles for LandingPage");
-        const response = await axios.get("http://localhost:5000/api/raffles");
+        const response = await axios.get("https://raffle-backend-nu.vercel.app/api/raffles");
         console.log("Raffles data:", response.data);
         // Filter active raffles (no winner and endTime > now)
         const activeRaffles = response.data.filter(
