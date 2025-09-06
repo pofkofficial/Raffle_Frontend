@@ -19,7 +19,6 @@ const AdminDashboard = () => {
   const [currentParticipant, setCurrentParticipant] = useState('');
   const [winner, setWinner] = useState(null);
   const BACKEND = process.env.BACKEND_LINK;
-  const FRONTEND = process.env.FRONTEND_LINK;
 
   useEffect(() => {
     if (!localStorage.getItem('adminToken')) {
