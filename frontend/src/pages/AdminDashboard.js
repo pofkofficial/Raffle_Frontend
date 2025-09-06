@@ -18,17 +18,17 @@ const AdminDashboard = () => {
   const [isSelecting, setIsSelecting] = useState(false);
   const [currentParticipant, setCurrentParticipant] = useState('');
   const [winner, setWinner] = useState(null);
+  const BACKEND = process.env.BACKEND_LINK;
+  const FRONTEND = process.env.FRONTEND_LINK;
 
   useEffect(() => {
     if (!localStorage.getItem('adminToken')) {
       navigate('/admin/login');
     }
 
-    console.log('AdminDashboard: id=', id, 'secret=', secret);
-
     if (id && id !== 'undefined') {
       axios
-        .get(`https://raffle-backend-rho.vercel.app/api/raffles/${id}`)
+        .get(BACKEND + `/api/raffles/${id}`)
         .then((res) => {
           if (res.data.creatorSecret !== secret) {
             setError('Invalid secret for this raffle');
@@ -41,7 +41,7 @@ const AdminDashboard = () => {
         });
     } else {
       axios
-        .get('https://raffle-backend-rho.vercel.app/api/raffles')
+        .get(BACKEND + '/api/raffles')
         .then((res) => {
           const now = new Date();
           const live = res.data.filter(
@@ -92,7 +92,7 @@ const AdminDashboard = () => {
           return;
         }
         const response = await axios.post(
-          `https://raffle-backend-rho.vercel.app/api/raffles/end/${id}/${secret}`,
+          BACKEND + `/api/raffles/end/${id}/${secret}`,
           {},
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -103,7 +103,7 @@ const AdminDashboard = () => {
           navigate(`/winner/${id}`);
         }, 3000);
         setIsSelecting(false);
-        const updatedRaffle = await axios.get(`https://raffle-backend-rho.vercel.app/api/raffles/${id}`);
+        const updatedRaffle = await axios.get(BACKEND + `/api/raffles/${id}`);
         setRaffle(updatedRaffle.data);
       } catch (err) {
         console.error('End raffle error:', err);

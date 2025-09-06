@@ -8,12 +8,13 @@ const LandingPage = () => {
   const [confetti, setConfetti] = useState(false);
   const [raffles, setRaffles] = useState([]);
   const [error, setError] = useState("");
+  const BACKEND = process.env.BACKEND_LINK;
 
   useEffect(() => {
     const fetchRaffles = async () => {
       try {
         console.log("Fetching raffles for LandingPage");
-        const response = await axios.get("https://raffle-backend-rho.vercel.app/api/raffles");
+        const response = await axios.get(BACKEND + "/api/raffles");
         console.log("Raffles data:", response.data);
         // Filter active raffles (no winner and endTime > now)
         const activeRaffles = response.data.filter(

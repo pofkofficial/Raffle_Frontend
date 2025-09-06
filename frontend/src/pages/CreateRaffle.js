@@ -14,6 +14,7 @@ const CreateRaffle = () => {
   const [prizeImage, setPrizeImage] = useState(null);
   const [error, setError] = useState('');
   const [showConfetti, setShowConfetti] = useState(false);
+  const BACKEND = process.env.BACKEND_LINK;
 
   useEffect(() => {
     if (!localStorage.getItem('adminToken')) {
@@ -59,7 +60,7 @@ const CreateRaffle = () => {
     }
 
     try {
-      const response = await axios.post('https://raffle-backend-rho.vercel.app/api/raffles/create', formData, {
+      const response = await axios.post(BACKEND + '/api/raffles/create', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,

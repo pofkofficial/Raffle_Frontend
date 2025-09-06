@@ -18,6 +18,7 @@ const RaffleDetails = () => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [showWinnerModal, setShowWinnerModal] = useState(false);
   const isAdmin = !!localStorage.getItem('adminToken');
+  const BACKEND = process.env.BACKEND_LINK;
 
   useEffect(() => {
     const fetchRaffle = async () => {
@@ -27,7 +28,7 @@ const RaffleDetails = () => {
       }
       try {
         console.log(`Fetching raffle with ID: ${id}`);
-        const response = await axios.get(`https://raffle-backend-rho.vercel.app/api/raffles/${id}`);
+        const response = await axios.get(BACKEND + `/api/raffles/${id}`);
         console.log('Raffle data:', response.data);
         setRaffle(response.data);
         if (response.data.winner || new Date(response.data.endTime) <= new Date()) {
@@ -41,7 +42,7 @@ const RaffleDetails = () => {
     fetchRaffle();
   }, [id]);
 
-  const publicKey = process.env.REACT_APP_PAYSTACK_PUBLIC_KEY || 'pk_test_9dd674c3ff8c8ed03348c35c8eb0da14b068fd4d';
+  const publicKey = process.env.MAIN_PAYSTACK;
   const componentProps = {
     email,
     amount: raffle?.ticketPrice * 100,
@@ -53,7 +54,7 @@ const RaffleDetails = () => {
       console.log('Paystack success:', response);
       setShowConfetti(true);
       axios
-        .post('https://raffle-backend-rho.vercel.app/api/raffles/verify-payment', {
+        .post(BACKEND + '/api/raffles/verify-payment', {
           reference: response.reference,
           raffleId: id,
           name,
@@ -88,7 +89,7 @@ const RaffleDetails = () => {
       return;
     }
     try {
-      const res = await axios.post('https://raffle-backend-rho.vercel.app/api/raffles/init-payment', { raffleId: id, displayName: name, contact, email }, { responseType: 'blob' });
+      const res = await axios.post(BACKEND + '/api/raffles/init-payment', { raffleId: id, displayName: name, contact, email }, { responseType: 'blob' });
       console.log('Free Join Response Headers:', res.headers);
       const ticketNumber = res.headers['x-ticket-number'] || res.headers['X-Ticket-Number'];
       console.log('Ticket Number:', ticketNumber);
