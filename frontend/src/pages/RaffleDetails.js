@@ -27,7 +27,7 @@ const RaffleDetails = () => {
       }
       try {
         console.log(`Fetching raffle with ID: ${id}`);
-        const response = await axios.get(`https://raffle-backend-nu.vercel.app/api/raffles/${id}`);
+        const response = await axios.get(`https://raffle-backend-rho.vercel.app/api/raffles/${id}`);
         console.log('Raffle data:', response.data);
         setRaffle(response.data);
         if (response.data.winner || new Date(response.data.endTime) <= new Date()) {
@@ -53,7 +53,7 @@ const RaffleDetails = () => {
       console.log('Paystack success:', response);
       setShowConfetti(true);
       axios
-        .post('https://raffle-backend-nu.vercel.app/api/raffles/verify-payment', {
+        .post('https://raffle-backend-rho.vercel.app/api/raffles/verify-payment', {
           reference: response.reference,
           raffleId: id,
           name,
@@ -88,7 +88,7 @@ const RaffleDetails = () => {
       return;
     }
     try {
-      const res = await axios.post('https://raffle-backend-nu.vercel.app/api/raffles/init-payment', { raffleId: id, displayName: name, contact, email }, { responseType: 'blob' });
+      const res = await axios.post('https://raffle-backend-rho.vercel.app/api/raffles/init-payment', { raffleId: id, displayName: name, contact, email }, { responseType: 'blob' });
       console.log('Free Join Response Headers:', res.headers);
       const ticketNumber = res.headers['x-ticket-number'] || res.headers['X-Ticket-Number'];
       console.log('Ticket Number:', ticketNumber);
