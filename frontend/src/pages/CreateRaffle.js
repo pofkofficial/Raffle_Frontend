@@ -8,7 +8,9 @@ const CreateRaffle = () => {
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [prizeTypes, setPrizeTypes] = useState([]); // Array for selected prize types
   const [cashPrize, setCashPrize] = useState('');
+  const [itemName, setItemName] = useState('');
   const [ticketPrice, setTicketPrice] = useState('');
   const [endTime, setEndTime] = useState('');
   const [prizeImage, setPrizeImage] = useState(null);
@@ -21,6 +23,22 @@ const CreateRaffle = () => {
     }
   }, [navigate]);
 
+  const handlePrizeTypeChange = (type) => {
+    setPrizeTypes((prev) =>
+      prev.includes(type)
+        ? prev.filter((t) => t !== type)
+        : [...prev, type]
+    );
+    // Reset fields if prize type is unchecked
+    if (type === 'cash' && prizeTypes.includes('cash')) {
+      setCashPrize('');
+    }
+    if (type === 'item' && prizeTypes.includes('item')) {
+      setItemName('');
+      setPrizeImage(null);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -28,8 +46,16 @@ const CreateRaffle = () => {
       setError('Raffle title is required');
       return;
     }
-    if (!cashPrize || cashPrize <= 0) {
+    if (prizeTypes.length === 0) {
+      setError('At least one prize type (Cash or Item) must be selected');
+      return;
+    }
+    if (prizeTypes.includes('cash') && (!cashPrize || cashPrize <= 0)) {
       setError('Cash prize must be a positive number');
+      return;
+    }
+    if (prizeTypes.includes('item') && !itemName.trim()) {
+      setError('Item name is required when Item is selected');
       return;
     }
     if (!ticketPrice || ticketPrice < 0) {
@@ -49,10 +75,16 @@ const CreateRaffle = () => {
     const formData = new FormData();
     formData.append('title', title);
     formData.append('description', description);
-    formData.append('cashPrize', cashPrize);
+    formData.append('prizeTypes', JSON.stringify(prizeTypes));
+    if (prizeTypes.includes('cash')) {
+      formData.append('cashPrize', cashPrize);
+    }
+    if (prizeTypes.includes('item')) {
+      formData.append('itemName', itemName);
+      if (prizeImage) formData.append('prizeImage', prizeImage);
+    }
     formData.append('ticketPrice', ticketPrice);
     formData.append('endTime', endTime);
-    if (prizeImage) formData.append('prizeImage', prizeImage);
 
     for (let pair of formData.entries()) {
       console.log(`${pair[0]}: ${pair[1]}`);
@@ -108,15 +140,60 @@ const CreateRaffle = () => {
               className="border border-gray-300 dark:border-gray-600 p-3 w-full mb-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               rows="4"
             />
-            <input
-              type="number"
-              placeholder="Cash Prize (GHS)"
-              value={cashPrize}
-              onChange={(e) => setCashPrize(e.target.value)}
-              min="1"
-              className="border border-gray-300 dark:border-gray-600 p-3 w-full mb-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-              required
-            />
+            <div className="mb-3">
+              <label className="block text-gray-700 dark:text-gray-300 mb-1">Prize Type</label>
+              <div className="flex space-x-4">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    value="cash"
+                    checked={prizeTypes.includes('cash')}
+                    onChange={() => handlePrizeTypeChange('cash')}
+                    className="mr-2"
+                  />
+                  Cash
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    value="item"
+                    checked={prizeTypes.includes('item')}
+                    onChange={() => handlePrizeTypeChange('item')}
+                    className="mr-2"
+                  />
+                  Item
+                </label>
+              </div>
+            </div>
+            {prizeTypes.includes('cash') && (
+              <input
+                type="number"
+                placeholder="Cash Prize (GHS)"
+                value={cashPrize}
+                onChange={(e) => setCashPrize(e.target.value)}
+                min="1"
+                className="border border-gray-300 dark:border-gray-600 p-3 w-full mb-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                required
+              />
+            )}
+            {prizeTypes.includes('item') && (
+              <>
+                <input
+                  type="text"
+                  placeholder="Item Name"
+                  value={itemName}
+                  onChange={(e) => setItemName(e.target.value)}
+                  className="border border-gray-300 dark:border-gray-600 p-3 w-full mb-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  required
+                />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setPrizeImage(e.target.files[0])}
+                  className="border border-gray-300 dark:border-gray-600 p-3 w-full mb-3 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                />
+              </>
+            )}
             <input
               type="number"
               placeholder="Ticket Price (GHS)"
@@ -133,12 +210,6 @@ const CreateRaffle = () => {
               min={new Date().toISOString().slice(0, 16)}
               className="border border-gray-300 dark:border-gray-600 p-3 w-full mb-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               required
-            />
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setPrizeImage(e.target.files[0])}
-              className="border border-gray-300 dark:border-gray-600 p-3 w-full mb-3 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             />
             <motion.button
               whileHover={{ scale: 1.05 }}
