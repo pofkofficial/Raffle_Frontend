@@ -1,31 +1,42 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 
 const CountdownTimer = ({ endTime }) => {
-  const [timeLeft, setTimeLeft] = useState('');
+  const calculateTimeLeft = () => {
+    const difference = new Date(endTime) - new Date();
+    let timeLeft = {};
+
+    if (difference > 0) {
+      timeLeft = {
+        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((difference / 1000 / 60) % 60),
+        seconds: Math.floor((difference / 1000) % 60),
+      };
+    } else {
+      timeLeft = { expired: true };
+    }
+
+    return timeLeft;
+  };
+
+  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      const diff = new Date(endTime) - new Date();
-      if (diff > 0) {
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        setTimeLeft(`${days}d ${hours}h`);
-      } else {
-        setTimeLeft('Ended');
-      }
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
     }, 1000);
-    return () => clearInterval(interval);
+
+    return () => clearInterval(timer);
   }, [endTime]);
 
+  if (timeLeft.expired) {
+    return <span className="text-red-500">Ended</span>;
+  }
+
   return (
-    <motion.div
-      animate={{ scale: [1, 1.1, 1] }}
-      transition={{ repeat: Infinity, duration: 1 }}
-      className="text-2xl font-bold text-[#FF6B6B]"
-    >
-      {timeLeft}
-    </motion.div>
+    <span className="text-gray-700 dark:text-gray-200">
+      {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s
+    </span>
   );
 };
 

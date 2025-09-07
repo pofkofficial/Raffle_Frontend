@@ -14,6 +14,7 @@ const RaffleDetails = () => {
   const [name, setName] = useState('');
   const [contact, setContact] = useState('');
   const [email, setEmail] = useState('');
+  const [quantity, setQuantity] = useState(1);
   const [error, setError] = useState('');
   const [showConfetti, setShowConfetti] = useState(false);
   const [showWinnerModal, setShowWinnerModal] = useState(false);
@@ -44,11 +45,11 @@ const RaffleDetails = () => {
   const publicKey = process.env.REACT_APP_PAYSTACK_PUBLIC_KEY || 'pk_test_9dd674c3ff8c8ed03348c35c8eb0da14b068fd4d';
   const componentProps = {
     email,
-    amount: raffle?.ticketPrice * 100,
+    amount: raffle?.ticketPrice * quantity * 100,
     currency: 'GHS',
-    metadata: { name, contact, raffleId: id, referrer: window.location.href },
+    metadata: { name, contact, raffleId: id, referrer: window.location.href, quantity, email },
     publicKey,
-    text: 'Join Now',
+    text: `Join Now (${quantity} Ticket${quantity > 1 ? 's' : ''})`,
     onSuccess: (response) => {
       console.log('Paystack success:', response);
       setShowConfetti(true);
@@ -58,23 +59,27 @@ const RaffleDetails = () => {
           raffleId: id,
           name,
           contact,
+          email,
+          quantity,
         }, { responseType: 'blob' })
         .then((res) => {
           console.log('Verify Response Headers:', res.headers);
-          const ticketNumber = res.headers['x-ticket-number'] || res.headers['X-Ticket-Number'];
-          console.log('Ticket Number:', ticketNumber);
-          if (!ticketNumber) {
-            throw new Error('Ticket number not received from server');
+          const ticketNumbersHeader = res.headers['x-ticket-numbers'] || res.headers['X-Ticket-Numbers'];
+          console.log('Raw x-ticket-numbers header:', ticketNumbersHeader);
+          const ticketNumbers = ticketNumbersHeader ? JSON.parse(ticketNumbersHeader) : [];
+          console.log('Parsed Ticket Numbers:', ticketNumbers);
+          if (!ticketNumbers.length) {
+            throw new Error('No ticket numbers received from server');
           }
-          const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+          const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/zip' }));
           const link = document.createElement('a');
           link.href = url;
-          link.setAttribute('download', 'raffle-ticket.pdf');
+          link.setAttribute('download', `tickets-${id}.zip`);
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
           window.URL.revokeObjectURL(url);
-          navigate(`/ticket/${id}?ticketNumber=${encodeURIComponent(ticketNumber)}`);
+          navigate(`/ticket/${id}?ticketNumber=${encodeURIComponent(ticketNumbers[0])}`);
           setTimeout(() => setShowConfetti(false), 3000);
         })
         .catch((err) => setError(`Payment verification failed: ${err.response?.data?.error || err.message}`));
@@ -83,28 +88,36 @@ const RaffleDetails = () => {
   };
 
   const handleFreeJoin = async () => {
-    if (!name || !contact || !email) {
-      setError('All fields are required');
+    if (!name || !contact || !email || !quantity || quantity < 1) {
+      setError('All fields and valid ticket quantity are required');
       return;
     }
     try {
-      const res = await axios.post('https://raffle-backend-rho.vercel.app/api/raffles/init-payment', { raffleId: id, displayName: name, contact, email }, { responseType: 'blob' });
+      const res = await axios.post('https://raffle-backend-rho.vercel.app/api/raffles/init-payment', {
+        raffleId: id,
+        displayName: name,
+        contact,
+        email,
+        quantity,
+      }, { responseType: 'blob' });
       console.log('Free Join Response Headers:', res.headers);
-      const ticketNumber = res.headers['x-ticket-number'] || res.headers['X-Ticket-Number'];
-      console.log('Ticket Number:', ticketNumber);
-      if (!ticketNumber) {
-        throw new Error('Ticket number not received from server');
+      const ticketNumbersHeader = res.headers['x-ticket-numbers'] || res.headers['X-Ticket-Numbers'];
+      console.log('Raw x-ticket-numbers header:', ticketNumbersHeader);
+      const ticketNumbers = ticketNumbersHeader ? JSON.parse(ticketNumbersHeader) : [];
+      console.log('Parsed Ticket Numbers:', ticketNumbers);
+      if (!ticketNumbers.length) {
+        throw new Error('No ticket numbers received from server');
       }
-      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/zip' }));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', 'raffle-ticket.pdf');
+      link.setAttribute('download', `tickets-${id}.zip`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       setShowConfetti(true);
-      navigate(`/ticket/${id}?ticketNumber=${encodeURIComponent(ticketNumber)}`);
+      navigate(`/ticket/${id}?ticketNumber=${encodeURIComponent(ticketNumbers[0])}`);
       setTimeout(() => setShowConfetti(false), 3000);
     } catch (err) {
       setError(`Failed to join: ${err.response?.data?.error || err.message}`);
@@ -112,12 +125,25 @@ const RaffleDetails = () => {
   };
 
   if (error) return <div className="text-red-500 text-center p-8">{error}</div>;
-  if (!raffle) return <div className="text-white text-center p-8">Loading...</div>;
+  if (!raffle) return <div className="text-gray-700 text-center p-8">Loading...</div>;
 
   const isRaffleActive = !raffle.winner && new Date(raffle.endTime) > new Date();
 
+  // Aggregate participants by email and contact
+  const aggregatedParticipants = raffle.participants.reduce((acc, p) => {
+    const key = `${p.email}:${p.contact}`;
+    if (!acc[key]) {
+      acc[key] = { ...p, ticketCount: p.ticketNumbers.length };
+    } else {
+      acc[key].ticketNumbers.push(...p.ticketNumbers);
+      acc[key].ticketCount += p.ticketNumbers.length;
+    }
+    return acc;
+  }, {});
+  const uniqueParticipants = Object.values(aggregatedParticipants);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FF6B6B] to-[#FFD93D] p-6">
+    <div className="min-h-screen bg-white p-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -149,13 +175,17 @@ const RaffleDetails = () => {
           <p className="text-gray-600 dark:text-gray-200 text-lg mb-4">{raffle.description}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             <p className="text-gray-700 dark:text-gray-200">
-              <span className="font-semibold">Cash Prize:</span> GHS {raffle.cashPrize}
+              <span className="font-semibold">Prize:</span>{" "}
+              {raffle.prizeTypes.includes('cash') && `GHS ${raffle.cashPrize}`}
+              {raffle.prizeTypes.includes('cash') && raffle.prizeTypes.includes('item') && ' + '}
+              {raffle.prizeTypes.includes('item') && raffle.itemName}
             </p>
             <p className="text-gray-700 dark:text-gray-200">
               <span className="font-semibold">Ticket Price:</span> GHS {raffle.ticketPrice}
             </p>
             <p className="text-gray-700 dark:text-gray-200">
-              <span className="font-semibold">Ends:</span> {new Date(raffle.endTime).toLocaleString()}
+              <span className="font-semibold">Ends:</span>{" "}
+              <CountdownTimer endTime={raffle.endTime} />
             </p>
             <p className="text-gray-700 dark:text-gray-200">
               <span className="font-semibold">Participants:</span>{' '}
@@ -166,11 +196,10 @@ const RaffleDetails = () => {
                 transition={{ duration: 0.3 }}
                 className="text-[#6BCB77] font-bold"
               >
-                {raffle.participants.length}
+                {uniqueParticipants.length}
               </motion.span>
             </p>
           </div>
-          <CountdownTimer endTime={raffle.endTime} />
           {!isAdmin && isRaffleActive && (
             <div className="mt-6">
               <input
@@ -194,6 +223,15 @@ const RaffleDetails = () => {
                 className="border border-gray-300 dark:border-gray-600 p-3 w-full mb-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 required
               />
+              <input
+                type="number"
+                placeholder="Number of Tickets"
+                value={quantity}
+                onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                min="1"
+                className="border border-gray-300 dark:border-gray-600 p-3 w-full mb-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                required
+              />
               {raffle.ticketPrice > 0 ? (
                 <PaystackButton
                   {...componentProps}
@@ -204,7 +242,7 @@ const RaffleDetails = () => {
                   onClick={handleFreeJoin}
                   className="bg-[#6BCB77] text-white p-4 rounded-lg w-full font-semibold hover:bg-[#5BB966] transition-colors"
                 >
-                  Join Free
+                  Join Free ({quantity} Ticket{quantity > 1 ? 's' : ''})
                 </button>
               )}
             </div>
@@ -224,7 +262,7 @@ const RaffleDetails = () => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => navigate(`/admin/${raffle._id}?secret=${raffle.creatorSecret}`)}
+                  onClick={() => navigate(`/admin/${raffle._id}`)}
                   className="bg-[#FFD93D] text-black p-4 rounded-lg w-full font-semibold hover:bg-[#FFCA28] transition-colors"
                 >
                   Manage Raffle
@@ -243,11 +281,11 @@ const RaffleDetails = () => {
           <div className="mt-8">
             <h2 className="text-2xl font-poppins font-semibold text-[#4D96FF] mb-4">Participants</h2>
             <AnimatePresence>
-              {raffle.participants.length > 0 ? (
+              {uniqueParticipants.length > 0 ? (
                 <ul className="space-y-3 max-h-60 overflow-y-auto">
-                  {raffle.participants.map((p) => (
+                  {uniqueParticipants.map((p) => (
                     <motion.li
-                      key={p.ticketNumber}
+                      key={`${p.email}:${p.contact}`}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 20 }}
@@ -257,7 +295,12 @@ const RaffleDetails = () => {
                       <div className="w-10 h-10 rounded-full bg-[#FF6B6B] flex items-center justify-center text-white font-bold mr-3">
                         {p.displayName.charAt(0).toUpperCase()}
                       </div>
-                      <span className="text-gray-800 dark:text-gray-200">{p.displayName}</span>
+                      <div>
+                        <span className="text-gray-800 dark:text-gray-200">{p.displayName}</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400 block">
+                          Tickets: {p.ticketCount}
+                        </span>
+                      </div>
                     </motion.li>
                   ))}
                 </ul>
