@@ -4,6 +4,7 @@ import axios from 'axios';
 import CountdownTimer from '../components/CountdownTimer';
 import { motion, AnimatePresence } from 'framer-motion';
 import ConfettiBurst from '../components/ConfettiBurst';
+import Winner from '../components/Winner';
 
 const AdminDashboard = () => {
   const { id } = useParams();
@@ -17,14 +18,12 @@ const AdminDashboard = () => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [isSelecting, setIsSelecting] = useState(false);
   const [currentParticipant, setCurrentParticipant] = useState('');
-  const [winner, setWinner] = useState(null);
+  const [showWinnerModal, setShowWinnerModal] = useState(false);
 
   useEffect(() => {
     if (!localStorage.getItem('adminToken')) {
       navigate('/admin/login');
     }
-
-    console.log('AdminDashboard: id=', id, 'secret=', secret);
 
     if (id && id !== 'undefined') {
       axios
@@ -34,6 +33,9 @@ const AdminDashboard = () => {
             setError('Invalid secret for this raffle');
           } else {
             setRaffle(res.data);
+            if (res.data.winner || new Date(res.data.endTime) <= new Date()) {
+              setShowWinnerModal(true);
+            }
           }
         })
         .catch((err) => {
@@ -63,11 +65,15 @@ const AdminDashboard = () => {
     if (isSelecting) return;
     setIsSelecting(true);
     setError(null);
-    setWinner(null);
 
     const participants = raffle.participants || [];
-    if (participants.length === 0) {
-      setError('No participants in this raffle');
+    // Flatten all ticket numbers with their corresponding displayNames
+    const ticketEntries = participants.flatMap(p => 
+      p.ticketNumbers.map(ticket => ({ ticket, displayName: p.displayName }))
+    );
+
+    if (ticketEntries.length === 0) {
+      setError('No tickets in this raffle');
       setIsSelecting(false);
       return;
     }
@@ -75,8 +81,8 @@ const AdminDashboard = () => {
     let cycleCount = 0;
     const maxCycles = 12;
     const cycleInterval = setInterval(() => {
-      const randomIndex = Math.floor(Math.random() * participants.length);
-      setCurrentParticipant(participants[randomIndex]?.displayName || 'Selecting...');
+      const randomIndex = Math.floor(Math.random() * ticketEntries.length);
+      setCurrentParticipant(ticketEntries[randomIndex].displayName || 'Selecting...');
       cycleCount++;
       if (cycleCount >= maxCycles) {
         clearInterval(cycleInterval);
@@ -96,11 +102,10 @@ const AdminDashboard = () => {
           {},
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setWinner(response.data.winner || 'No winner selected');
         setShowConfetti(true);
+        setShowWinnerModal(true);
         setTimeout(() => {
           setShowConfetti(false);
-          navigate(`/winner/${id}`);
         }, 3000);
         setIsSelecting(false);
         const updatedRaffle = await axios.get(`https://raffle-backend-rho.vercel.app/api/raffles/${id}`);
@@ -164,7 +169,7 @@ const AdminDashboard = () => {
                   <span className="font-semibold">Ticket Price:</span> GHS {raffle.ticketPrice}
                 </p>
                 <p className="text-gray-700 dark:text-gray-200">
-                  <span className="font-semibold">Ends:</span> {new Date(raffle.endTime).toLocaleString()}
+                  <span className="font-semibold">Ends:</span> <CountdownTimer endTime={raffle.endTime} />
                 </p>
                 <p className="text-gray-700 dark:text-gray-200">
                   <span className="font-semibold">Participants:</span>{' '}
@@ -179,7 +184,6 @@ const AdminDashboard = () => {
                   </motion.span>
                 </p>
               </div>
-              <CountdownTimer endTime={raffle.endTime} />
               <AnimatePresence>
                 {isSelecting && (
                   <motion.div
@@ -198,17 +202,6 @@ const AdminDashboard = () => {
                     >
                       {currentParticipant}
                     </motion.p>
-                  </motion.div>
-                )}
-                {winner && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5, ease: 'easeOut' }}
-                    className="mt-6 p-6 bg-[#6BCB77] text-white rounded-lg text-center"
-                  >
-                    <h2 className="text-2xl font-poppins font-semibold mb-4">Winner!</h2>
-                    <p className="text-3xl font-bold">{winner}</p>
                   </motion.div>
                 )}
                 {error && (
@@ -249,9 +242,9 @@ const AdminDashboard = () => {
                 <AnimatePresence>
                   {raffle.participants.length > 0 ? (
                     <ul className="space-y-3 max-h-64 overflow-y-auto">
-                      {raffle.participants.map((p) => (
+                      {raffle.participants.map((p, index) => (
                         <motion.li
-                          key={p.ticketNumber}
+                          key={`${p.email}:${p.contact}:${index}`}
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, x: 20 }}
@@ -263,7 +256,9 @@ const AdminDashboard = () => {
                           </div>
                           <div>
                             <span className="text-gray-800 dark:text-gray-200">{p.displayName}</span>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Ticket: {p.ticketNumber}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              Tickets: {p.ticketNumbers.length} ({p.ticketNumbers.join(', ')})
+                            </p>
                           </div>
                         </motion.li>
                       ))}
@@ -273,14 +268,6 @@ const AdminDashboard = () => {
                   )}
                 </AnimatePresence>
               </div>
-              {raffle.winner && (
-                <>
-                  <p className="text-[#4D96FF] font-bold mt-6 text-center">
-                    Winner: {raffle.participants.find((p) => p.ticketNumber === raffle.winner)?.displayName}
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 text-center">Ticket: {raffle.participants.find((p) => p.ticketNumber === raffle.winner)?.ticketNumber}</p>
-                </>
-              )}
             </>
           ) : (
             <>
@@ -325,7 +312,7 @@ const AdminDashboard = () => {
                       <motion.li
                         key={r._id}
                         initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 0.7, x: 0 }} // Faded opacity for ended raffles
+                        animate={{ opacity: 0.7, x: 0 }}
                         transition={{ duration: 0.3 }}
                         className="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors opacity-70"
                       >
@@ -338,8 +325,8 @@ const AdminDashboard = () => {
                             Participants: {r.participants.length} | Ended: {new Date(r.endTime).toLocaleString()}
                             {r.winner && (
                               <>
-                                <span> | Winner: {r.participants.find((p) => p.ticketNumber === r.winner)?.displayName}</span>
-                                <span> | Ticket: {r.participants.find((p) => p.ticketNumber === r.winner)?.ticketNumber}</span>
+                                <span> | Winner: {r.participants.find((p) => p.ticketNumbers.includes(r.winner))?.displayName || 'Unknown'}</span>
+                                <span> | Ticket: {r.winner}</span>
                               </>
                             )}
                           </p>
@@ -357,6 +344,11 @@ const AdminDashboard = () => {
           )}
         </div>
       </motion.div>
+      <AnimatePresence>
+        {showWinnerModal && (raffle?.winner || new Date(raffle?.endTime) <= new Date()) && (
+          <Winner raffle={raffle} onClose={() => setShowWinnerModal(false)} isAdmin={true} />
+        )}
+      </AnimatePresence>
       <ConfettiBurst trigger={showConfetti} />
     </div>
   );

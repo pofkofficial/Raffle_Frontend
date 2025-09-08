@@ -23,6 +23,10 @@ const CreateRaffle = () => {
     }
   }, [navigate]);
 
+  const generateCreatorSecret = () => {
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  };
+
   const handlePrizeTypeChange = (type) => {
     setPrizeTypes((prev) =>
       prev.includes(type)
@@ -84,7 +88,8 @@ const CreateRaffle = () => {
       if (prizeImage) formData.append('prizeImage', prizeImage);
     }
     formData.append('ticketPrice', ticketPrice);
-    formData.append('endTime', endTime);
+    formData.append('endTime', new Date(endTime).toISOString());
+    formData.append('creatorSecret', generateCreatorSecret());
 
     for (let pair of formData.entries()) {
       console.log(`${pair[0]}: ${pair[1]}`);
@@ -100,8 +105,8 @@ const CreateRaffle = () => {
       setShowConfetti(true);
       setTimeout(() => {
         setShowConfetti(false);
-        console.log('Navigating to /admin/', response.data.id);
-        navigate(`/admin/${response.data.id}?secret=${response.data.creatorSecret}`);
+        console.log('Navigating to /admin/', response.data._id);
+        navigate(`/admin/${response.data._id}?secret=${response.data.creatorSecret}`);
       }, 3000);
     } catch (err) {
       const errorMessage = err.response?.data?.error || err.message;
