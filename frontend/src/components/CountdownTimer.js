@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 const CountdownTimer = ({ endTime }) => {
-  const calculateTimeLeft = () => {
+  const calculateTimeLeft = useCallback(() => {
     const difference = new Date(endTime) - new Date();
     let timeLeft = {};
 
@@ -17,7 +17,7 @@ const CountdownTimer = ({ endTime }) => {
     }
 
     return timeLeft;
-  };
+  }, [endTime]);
 
   const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
 
@@ -27,7 +27,7 @@ const CountdownTimer = ({ endTime }) => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [endTime]);
+  }, [calculateTimeLeft]);
 
   if (timeLeft.expired) {
     return <span className="text-red-500">Ended</span>;
