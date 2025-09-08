@@ -14,6 +14,7 @@ const LandingPage = () => {
       try {
         console.log("Fetching raffles for LandingPage");
         const response = await axios.get("https://raffle-backend-rho.vercel.app/api/raffles");
+        console.log("Raffle data:", response.data);
         // Filter active raffles (no winner and endTime > now)
         const activeRaffles = response.data.filter(
           (raffle) =>
@@ -31,6 +32,17 @@ const LandingPage = () => {
     const timer = setTimeout(() => setConfetti(false), 3000);
     return () => clearTimeout(timer);
   }, []);
+
+  // Construct the image source with data URI prefix
+  const getPrizeImageSrc = (prizeImage) => {
+    if (!prizeImage) return "/fallback-image.jpg";
+    // Check if prizeImage already includes data URI prefix
+    if (prizeImage.startsWith("data:image/")) {
+      return prizeImage;
+    }
+    // Assume JPEG and add prefix for raw base64
+    return `data:image/jpeg;base64,${prizeImage}`;
+  };
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center p-6">
@@ -80,11 +92,17 @@ const LandingPage = () => {
                 >
                   <Link to={`/raffle/${raffle._id}`} className="block">
                     {raffle.prizeImage && (
-                      <img
-                        src={raffle.prizeImage}
-                        alt={raffle.title}
-                        className="w-full h-40 object-cover rounded-lg mb-4"
-                      />
+                      <div className="relative w-full aspect-[4/3] mb-4 rounded-lg overflow-hidden">
+                        <img
+                          src={getPrizeImageSrc(raffle.prizeImage)}
+                          alt={raffle.title}
+                          className="w-full h-full object-contain rounded-lg"
+                          onError={(e) => {
+                            console.error("Prize image failed to load for raffle:", raffle._id, raffle.prizeImage);
+                            e.target.src = "/fallback-image.jpg";
+                          }}
+                        />
+                      </div>
                     )}
                     <h3 className="text-xl font-poppins font-semibold text-[#4D96FF] mb-2">
                       {raffle.title}
@@ -95,9 +113,9 @@ const LandingPage = () => {
                     <div className="text-sm text-gray-700 dark:text-gray-200">
                       <p className="font-semibold">
                         Prize:
-                        {raffle.prizeTypes.includes('cash') && ` GHS ${raffle.cashPrize}`}
-                        {raffle.prizeTypes.includes('cash') && raffle.prizeTypes.includes('item') && ' + '}
-                        {raffle.prizeTypes.includes('item') && raffle.itemName}
+                        {raffle.prizeTypes.includes("cash") && ` GHS ${raffle.cashPrize || "N/A"}`}
+                        {raffle.prizeTypes.includes("cash") && raffle.prizeTypes.includes("item") && " + "}
+                        {raffle.prizeTypes.includes("item") && (raffle.itemName || "N/A")}
                       </p>
                       <p>
                         <span className="font-semibold">Ticket:</span> GHS {raffle.ticketPrice}

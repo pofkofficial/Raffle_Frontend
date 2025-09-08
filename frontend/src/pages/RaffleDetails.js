@@ -124,6 +124,17 @@ const RaffleDetails = () => {
     }
   };
 
+  // Construct the image source with data URI prefix
+  const getPrizeImageSrc = (prizeImage) => {
+    if (!prizeImage) return '/fallback-image.jpg';
+    // Check if prizeImage already includes data URI prefix
+    if (prizeImage.startsWith('data:image/')) {
+      return prizeImage;
+    }
+    // Assume JPEG and add prefix for raw base64
+    return `data:image/jpeg;base64,${prizeImage}`;
+  };
+
   if (error) return <div className="text-red-500 text-center p-8">{error}</div>;
   if (!raffle) return <div className="text-gray-700 text-center p-8">Loading...</div>;
 
@@ -160,14 +171,20 @@ const RaffleDetails = () => {
         </div>
         <div className="p-6">
           {raffle.prizeImage && (
-            <motion.img
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 0.3 }}
-              src={raffle.prizeImage}
-              alt="Prize"
-              className="w-full h-64 object-cover rounded-lg mb-6"
-            />
+            <div className="relative w-full aspect-[4/3] mb-6 rounded-lg overflow-hidden">
+              <motion.img
+                initial={{ scale: 0.9 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.3 }}
+                src={getPrizeImageSrc(raffle.prizeImage)}
+                alt="Prize"
+                className="w-full h-full object-contain rounded-lg"
+                onError={(e) => {
+                  console.error('Prize image failed to load:', raffle.prizeImage);
+                  e.target.src = '/fallback-image.jpg';
+                }}
+              />
+            </div>
           )}
           <h1 className="text-4xl font-poppins font-bold text-[#FF6B6B] mb-4 text-center">
             {raffle.title}
@@ -176,9 +193,9 @@ const RaffleDetails = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             <p className="text-gray-700 dark:text-gray-200">
               <span className="font-semibold">Prize:</span>{" "}
-              {raffle.prizeTypes.includes('cash') && `GHS ${raffle.cashPrize}`}
+              {raffle.prizeTypes.includes('cash') && `GHS ${raffle.cashPrize || 'N/A'}`}
               {raffle.prizeTypes.includes('cash') && raffle.prizeTypes.includes('item') && ' + '}
-              {raffle.prizeTypes.includes('item') && raffle.itemName}
+              {raffle.prizeTypes.includes('item') && (raffle.itemName || 'N/A')}
             </p>
             <p className="text-gray-700 dark:text-gray-200">
               <span className="font-semibold">Ticket Price:</span> GHS {raffle.ticketPrice}
@@ -262,7 +279,7 @@ const RaffleDetails = () => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => navigate(`/admin/${raffle._id}`)}
+                  onClick={() => navigate(`/admin/${raffle._id}?secret=${raffle.creatorSecret}`)}
                   className="bg-[#FFD93D] text-black p-4 rounded-lg w-full font-semibold hover:bg-[#FFCA28] transition-colors"
                 >
                   Manage Raffle
