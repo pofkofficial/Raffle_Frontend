@@ -104,12 +104,11 @@ const AdminDashboard = () => {
         );
         setShowConfetti(true);
         setShowWinnerModal(true);
+        setRaffle(response.data); // Use POST response to update raffle state
         setTimeout(() => {
           setShowConfetti(false);
         }, 3000);
         setIsSelecting(false);
-        const updatedRaffle = await axios.get(`https://raffle-backend-rho.vercel.app/api/raffles/${id}`);
-        setRaffle(updatedRaffle.data);
       } catch (err) {
         console.error('End raffle error:', err);
         setError(`Failed to end raffle: ${err.response?.data?.error || err.message}`);
