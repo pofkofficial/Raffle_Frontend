@@ -10,7 +10,7 @@ const Winner = ({ raffle, onClose, isAdmin }) => {
     return () => clearTimeout(timer);
   }, []);
 
-  const winner = raffle?.participants.find((p) => p.ticketNumber === raffle.winner);
+  const winner = raffle?.participants?.find((p) => p.ticketNumbers.includes(raffle.winner));
 
   return (
     <>
@@ -54,14 +54,14 @@ const Winner = ({ raffle, onClose, isAdmin }) => {
             </p>
             {winner && (
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Ticket: {winner.ticketNumber}
+                Ticket: {raffle.winner}
               </p>
             )}
             <p className="text-lg text-gray-600 dark:text-gray-200 mt-2">
               Raffle: {raffle.title}
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Prize: GHS {raffle.cashPrize}
+              Prize: {raffle.prizeTypes.includes('cash') ? `GHS ${raffle.cashPrize || 'N/A'}` : raffle.itemName || 'N/A'}
             </p>
           </motion.div>
           {isAdmin && (

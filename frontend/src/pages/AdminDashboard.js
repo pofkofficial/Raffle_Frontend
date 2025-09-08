@@ -66,7 +66,7 @@ const AdminDashboard = () => {
     setIsSelecting(true);
     setError(null);
 
-    const participants = raffle.participants || [];
+    const participants = raffle?.participants || [];
     // Flatten all ticket numbers with their corresponding displayNames
     const ticketEntries = participants.flatMap(p => 
       p.ticketNumbers.map(ticket => ({ ticket, displayName: p.displayName }))
@@ -162,7 +162,7 @@ const AdminDashboard = () => {
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 <p className="text-gray-700 dark:text-gray-200">
-                  <span className="font-semibold">Cash Prize:</span> GHS {raffle.cashPrize}
+                  <span className="font-semibold">Cash Prize:</span> GHS {raffle.cashPrize || 'N/A'}
                 </p>
                 <p className="text-gray-700 dark:text-gray-200">
                   <span className="font-semibold">Ticket Price:</span> GHS {raffle.ticketPrice}
@@ -173,13 +173,13 @@ const AdminDashboard = () => {
                 <p className="text-gray-700 dark:text-gray-200">
                   <span className="font-semibold">Participants:</span>{' '}
                   <motion.span
-                    key={raffle.participants.length}
+                    key={raffle.participants?.length || 0}
                     initial={{ scale: 1.2 }}
                     animate={{ scale: 1 }}
                     transition={{ duration: 0.3 }}
                     className="text-[#6BCB77] font-bold"
                   >
-                    {raffle.participants.length}
+                    {raffle.participants?.length || 0}
                   </motion.span>
                 </p>
               </div>
@@ -239,7 +239,7 @@ const AdminDashboard = () => {
               <div className="mt-8">
                 <h2 className="text-2xl font-poppins font-semibold text-[#4D96FF] mb-4">Participants</h2>
                 <AnimatePresence>
-                  {raffle.participants.length > 0 ? (
+                  {raffle.participants?.length > 0 ? (
                     <ul className="space-y-3 max-h-64 overflow-y-auto">
                       {raffle.participants.map((p, index) => (
                         <motion.li
