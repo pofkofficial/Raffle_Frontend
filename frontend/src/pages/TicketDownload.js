@@ -28,7 +28,7 @@ const TicketDownload = () => {
         console.log(`Fetching ticket with raffle ID: ${id}, ticketNumber: ${ticketNumber}`);
         const response = await axios.get(`https://raffle-backend-rho.vercel.app/api/raffles/${id}/ticket/${ticketNumber}`);
         console.log('Ticket data:', response.data);
-        setTicketData({ ...response.data.raffle, participants: [response.data.participant] });
+        setTicketData({ ...response.data.raffle, participants: [response.data.participant], ticketNumber });
       } catch (err) {
         console.error('Error fetching ticket:', err.response?.data || err.message);
         setError(`Failed to load ticket: ${err.response?.data?.error || err.message}`);
@@ -112,7 +112,7 @@ const TicketDownload = () => {
               className="mx-auto"
             />
             <p className="mt-2 text-[#FF6B6B] font-semibold">
-              Ticket Number: {participant?.ticketNumber || 'N/A'}
+              Ticket Number: {ticketNumber || 'N/A'}
             </p>
             <p className="text-gray-600 dark:text-gray-200">
               Name: {participant?.displayName || 'N/A'}
