@@ -8,7 +8,7 @@ const CreateRaffle = () => {
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [prizeTypes, setPrizeTypes] = useState([]); // Array for selected prize types
+  const [prizeTypes, setPrizeTypes] = useState([]);
   const [cashPrize, setCashPrize] = useState('');
   const [itemName, setItemName] = useState('');
   const [ticketPrice, setTicketPrice] = useState('');
@@ -16,6 +16,7 @@ const CreateRaffle = () => {
   const [prizeImage, setPrizeImage] = useState(null);
   const [error, setError] = useState('');
   const [showConfetti, setShowConfetti] = useState(false);
+  const BACKEND = process.env.BACKEND_LINK;
 
   useEffect(() => {
     if (!localStorage.getItem('adminToken')) {
@@ -33,7 +34,6 @@ const CreateRaffle = () => {
         ? prev.filter((t) => t !== type)
         : [...prev, type]
     );
-    // Reset fields if prize type is unchecked
     if (type === 'cash' && prizeTypes.includes('cash')) {
       setCashPrize('');
     }
@@ -96,7 +96,7 @@ const CreateRaffle = () => {
     }
 
     try {
-      const response = await axios.post('https://raffle-backend-rho.vercel.app/api/raffles/create', formData, {
+      const response = await axios.post(`${BACKEND}/api/raffles/create`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
@@ -116,47 +116,61 @@ const CreateRaffle = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FF6B6B] to-[#FFD93D] p-6">
+    <div className="min-h-[calc(100vh-2rem)] bg-white flex items-center justify-center p-4 sm:p-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden"
+        className="max-w-[90%] sm:max-w-lg md:max-w-xl lg:max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden"
       >
-        <div className="bg-[#4D96FF] p-4 flex justify-center items-center"></div>
-        <div className="p-6">
-          <h1 className="text-3xl font-poppins font-bold text-[#FF6B6B] mb-6 text-center">
+        <div className="bg-[#4D96FF] p-3 sm:p-4 flex justify-center items-center mb-4 sm:mb-6 rounded-t-2xl space-x-2">
+          <img
+            src="/logo.png"
+            alt="Try Ur Luck Logo"
+            className="h-12 sm:h-16 w-auto"
+            onError={(e) => {
+              console.error('Logo failed to load');
+              e.target.src = '/fallback-logo.png';
+            }}
+          />
+          <h1 className="text-white text-lg sm:text-xl font-poppins font-bold">Try Ur Luck</h1>
+        </div>
+        <div className="p-4 sm:p-6">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-poppins font-bold text-[#FF6B6B] mb-4 sm:mb-6 text-center">
             Create New Raffle
           </h1>
-          {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+          {error && <p className="text-red-500 text-sm sm:text-base text-center mb-4">{error}</p>}
           <form onSubmit={handleSubmit}>
             <input
               type="text"
               placeholder="Raffle Title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="border border-gray-300 dark:border-gray-600 p-3 w-full mb-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              className="border border-gray-300 dark:border-gray-600 px-3 py-3 sm:py-4 w-full mb-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-base sm:text-lg min-h-[44px]"
               required
+              aria-label="Raffle Title"
             />
             <textarea
               placeholder="Description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="border border-gray-300 dark:border-gray-600 p-3 w-full mb-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-              rows="4"
+              className="border border-gray-300 dark:border-gray-600 px-3 py-3 sm:py-4 w-full mb-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-base sm:text-lg"
+              rows="5"
+              aria-label="Raffle Description"
             />
             <div className="mb-3">
-              <label className="block text-gray-700 dark:text-gray-300 mb-1">Prize Type</label>
-              <div className="flex space-x-4">
+              <label className="block text-gray-700 dark:text-gray-300 text-base sm:text-lg mb-1">Prize Type</label>
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                 <label className="flex items-center">
                   <input
                     type="checkbox"
                     value="cash"
                     checked={prizeTypes.includes('cash')}
                     onChange={() => handlePrizeTypeChange('cash')}
-                    className="mr-2"
+                    className="mr-2 h-5 w-5"
+                    aria-label="Cash Prize"
                   />
-                  Cash
+                  <span className="text-base sm:text-lg">Cash</span>
                 </label>
                 <label className="flex items-center">
                   <input
@@ -164,9 +178,10 @@ const CreateRaffle = () => {
                     value="item"
                     checked={prizeTypes.includes('item')}
                     onChange={() => handlePrizeTypeChange('item')}
-                    className="mr-2"
+                    className="mr-2 h-5 w-5"
+                    aria-label="Item Prize"
                   />
-                  Item
+                  <span className="text-base sm:text-lg">Item</span>
                 </label>
               </div>
             </div>
@@ -177,8 +192,9 @@ const CreateRaffle = () => {
                 value={cashPrize}
                 onChange={(e) => setCashPrize(e.target.value)}
                 min="1"
-                className="border border-gray-300 dark:border-gray-600 p-3 w-full mb-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                className="border border-gray-300 dark:border-gray-600 px-3 py-3 sm:py-4 w-full mb-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-base sm:text-lg min-h-[44px]"
                 required
+                aria-label="Cash Prize Amount"
               />
             )}
             {prizeTypes.includes('item') && (
@@ -188,14 +204,16 @@ const CreateRaffle = () => {
                   placeholder="Item Name"
                   value={itemName}
                   onChange={(e) => setItemName(e.target.value)}
-                  className="border border-gray-300 dark:border-gray-600 p-3 w-full mb-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  className="border border-gray-300 dark:border-gray-600 px-3 py-3 sm:py-4 w-full mb-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-base sm:text-lg min-h-[44px]"
                   required
+                  aria-label="Item Name"
                 />
                 <input
                   type="file"
                   accept="image/*"
                   onChange={(e) => setPrizeImage(e.target.files[0])}
-                  className="border border-gray-300 dark:border-gray-600 p-3 w-full mb-3 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  className="border border-gray-300 dark:border-gray-600 px-3 py-3 sm:py-4 w-full mb-3 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-base sm:text-lg"
+                  aria-label="Prize Image Upload"
                 />
               </>
             )}
@@ -205,22 +223,25 @@ const CreateRaffle = () => {
               value={ticketPrice}
               onChange={(e) => setTicketPrice(e.target.value)}
               min="0"
-              className="border border-gray-300 dark:border-gray-600 p-3 w-full mb-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              className="border border-gray-300 dark:border-gray-600 px-3 py-3 sm:py-4 w-full mb-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-base sm:text-lg min-h-[44px]"
               required
+              aria-label="Ticket Price"
             />
             <input
               type="datetime-local"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
               min={new Date().toISOString().slice(0, 16)}
-              className="border border-gray-300 dark:border-gray-600 p-3 w-full mb-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              className="border border-gray-300 dark:border-gray-600 px-3 py-3 sm:py-4 w-full mb-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-base sm:text-lg min-h-[44px]"
               required
+              aria-label="Raffle End Time"
             />
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               type="submit"
-              className="bg-[#6BCB77] text-white p-3 rounded-lg w-full font-semibold hover:bg-[#5BB966] transition-colors"
+              className="bg-[#6BCB77] text-white px-4 py-3 sm:py-4 rounded-lg w-full font-semibold hover:bg-[#5BB966] transition-colors min-h-[44px]"
+              aria-label="Create Raffle"
             >
               Create Raffle
             </motion.button>
