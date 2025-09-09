@@ -41,9 +41,9 @@ const RaffleDetails = () => {
       }
     };
     fetchRaffle();
-  }, [id]);
+  }, [id, BACKEND]);
 
-  const publicKey = process.env.REACT_APP_PAYSTACK_PUBLIC_KEY;
+  const publicKey = process.env.MAIN_PAYSTACK;
   const componentProps = {
     email,
     amount: raffle?.ticketPrice * quantity * 100,

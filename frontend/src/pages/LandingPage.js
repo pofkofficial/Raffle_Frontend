@@ -30,7 +30,7 @@ const LandingPage = () => {
 
     const timer = setTimeout(() => setConfetti(false), 3000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [BACKEND]);
 
   const getPrizeImageSrc = (prizeImage) => {
     if (!prizeImage) return "/fallback-image.jpg";

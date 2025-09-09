@@ -13,7 +13,7 @@ const TicketDownload = () => {
   const [showConfetti, setShowConfetti] = useState(true);
   const [error, setError] = useState('');
   const ticketNumber = searchParams.get('ticketNumber');
-  const FRONTEND = process.env.REACT_APP_FRONTEND_LINK;
+  const FRONTEND = process.env.FRONTEND_LINK;
   const BACKEND = process.env.BACKEND_LINK;
 
   useEffect(() => {
@@ -40,7 +40,7 @@ const TicketDownload = () => {
     fetchTicket();
     const timer = setTimeout(() => setShowConfetti(false), 3000);
     return () => clearTimeout(timer);
-  }, [id, ticketNumber]);
+  }, [id, ticketNumber, BACKEND]);
 
   const handleDownload = () => {
     if (!id || id === 'undefined' || !ticketData?.participants[0]?.ticketNumber) {

@@ -84,7 +84,7 @@ const AdminDashboard = () => {
           setError(`Failed to load raffles: ${err.response?.data?.error || err.message}`);
         });
     }
-  }, [id, secret, navigate]);
+  }, [id, secret, navigate, BACKEND]);
 
   const handleEndRaffle = async () => {
     if (isSelecting) return;
