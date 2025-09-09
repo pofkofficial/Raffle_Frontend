@@ -13,7 +13,7 @@ const LandingPage = () => {
   useEffect(() => {
     const fetchRaffles = async () => {
       try {
-        console.log("Fetching raffles for LandingPage");
+        console.log("Fetching raffles for LandingPage with" + BACKEND );
         const response = await axios.get(`${BACKEND}/api/raffles`);
         console.log("Raffle data:", response.data);
         const activeRaffles = response.data.filter(
