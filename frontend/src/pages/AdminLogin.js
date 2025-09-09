@@ -30,15 +30,23 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FF6B6B] to-[#FFD93D] flex items-center justify-center p-6">
+    <div className="min-h-screen bg-white flex items-center justify-center p-6">
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
         className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 max-w-md w-full"
       >
-        <div className="bg-[#4D96FF] p-4 flex justify-center items-center mb-6 rounded-t-2xl">
-          <h1>Raffle Hub</h1>
+        <div className="bg-[#4D96FF] p-4 flex justify-center items-center mb-6 rounded-t-2xl space-x-2">
+          <img
+            src="/logo.png"
+            alt="Try Ur Luck Logo"
+            className="h-20 w-auto"
+            onError={(e) => {
+              console.error('Logo failed to load');
+              e.target.src = '/fallback-logo.png';
+            }}
+          />
         </div>
         <h1 className="text-3xl font-poppins font-bold text-[#FF6B6B] mb-6 text-center">
           Admin Login

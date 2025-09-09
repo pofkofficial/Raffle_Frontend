@@ -35,7 +35,7 @@ const Winner = ({ raffle, onClose, isAdmin }) => {
           </button>
           <div className="bg-[#4D96FF] p-4 flex justify-center items-center mb-6 rounded-t-2xl">
             <img
-              src="/logo-placeholder.png"
+              src="/logo.png"
               alt="Raffle Hub Logo"
               className="h-16 w-auto"
               onError={(e) => (e.target.src = '/fallback-logo.png')}

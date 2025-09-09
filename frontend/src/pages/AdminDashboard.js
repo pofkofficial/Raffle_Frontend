@@ -19,6 +19,11 @@ const AdminDashboard = () => {
   const [isSelecting, setIsSelecting] = useState(false);
   const [currentParticipant, setCurrentParticipant] = useState('');
   const [showWinnerModal, setShowWinnerModal] = useState(false);
+  const [overview, setOverview] = useState({
+    liveRafflesCount: 0,
+    totalTicketsSold: 0,
+    earningsByMonth: {},
+  });
 
   useEffect(() => {
     if (!localStorage.getItem('adminToken')) {
@@ -54,6 +59,25 @@ const AdminDashboard = () => {
           );
           setLiveRaffles(live);
           setEndedRaffles(ended);
+
+          // Calculate overview metrics
+          const allRaffles = [...live, ...ended];
+          const totalTicketsSold = allRaffles.reduce(
+            (sum, r) => sum + (r.participants?.reduce((acc, p) => acc + p.ticketNumbers.length, 0) || 0),
+            0
+          );
+          const earningsByMonth = allRaffles.reduce((acc, r) => {
+            const createdAt = new Date(r.createdAt);
+            const monthYear = `${createdAt.getFullYear()}-${(createdAt.getMonth() + 1).toString().padStart(2, '0')}`;
+            const earnings = (r.participants?.reduce((acc, p) => acc + p.ticketNumbers.length, 0) || 0) * r.ticketPrice;
+            acc[monthYear] = (acc[monthYear] || 0) + earnings;
+            return acc;
+          }, {});
+          setOverview({
+            liveRafflesCount: live.length,
+            totalTicketsSold,
+            earningsByMonth,
+          });
         })
         .catch((err) => {
           setError(`Failed to load raffles: ${err.response?.data?.error || err.message}`);
@@ -126,7 +150,7 @@ const AdminDashboard = () => {
   if (id && id !== 'undefined' && !raffle) return <div className="text-center p-8">Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#6BCB77] to-[#4D96FF] p-6">
+    <div className="min-h-screen bg-white p-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -134,6 +158,15 @@ const AdminDashboard = () => {
         className="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden"
       >
         <div className="bg-[#4D96FF] p-4 flex justify-between items-center">
+          <img
+            src="/logo.png"
+            alt="Try Ur Luck Logo"
+            className="h-20 w-auto"
+            onError={(e) => {
+              console.error('Logo failed to load');
+              e.target.src = '/fallback-logo.png';
+            }}
+          />
           <h1 className="text-2xl font-poppins font-bold text-white">Admin Dashboard</h1>
           <div className="flex space-x-4">
             <motion.button
@@ -273,6 +306,44 @@ const AdminDashboard = () => {
               <h1 className="text-3xl font-poppins font-bold text-[#FF6B6B] mb-6 text-center">
                 Admin Dashboard
               </h1>
+              <div className="mb-8">
+                <h2 className="text-2xl font-poppins font-semibold text-[#4D96FF] mb-4">Overview</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg text-center">
+                    <p className="text-gray-700 dark:text-gray-200 font-semibold">Live Raffles</p>
+                    <p className="text-3xl font-bold text-[#6BCB77]">{overview.liveRafflesCount}</p>
+                  </div>
+                  <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg text-center">
+                    <p className="text-gray-700 dark:text-gray-200 font-semibold">Total Tickets Sold</p>
+                    <p className="text-3xl font-bold text-[#6BCB77]">{overview.totalTicketsSold}</p>
+                  </div>
+                  <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg text-center">
+                    <p className="text-gray-700 dark:text-gray-200 font-semibold">Earnings This Month</p>
+                    <p className="text-3xl font-bold text-[#6BCB77]">
+                      GHS {overview.earningsByMonth[`${new Date().getFullYear()}-${(new Date().getMonth() + 1).toString().padStart(2, '0')}`] || 0}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <h3 className="text-xl font-poppins font-semibold text-[#4D96FF] mb-2">Earnings by Month</h3>
+                  {Object.keys(overview.earningsByMonth).length > 0 ? (
+                    <ul className="space-y-2">
+                      {Object.entries(overview.earningsByMonth)
+                        .sort(([a], [b]) => b.localeCompare(a))
+                        .map(([monthYear, earnings]) => (
+                          <li
+                            key={monthYear}
+                            className="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg text-gray-700 dark:text-gray-200"
+                          >
+                            {monthYear}: GHS {earnings}
+                          </li>
+                        ))}
+                    </ul>
+                  ) : (
+                    <p className="text-gray-500 dark:text-gray-400">No earnings data available.</p>
+                  )}
+                </div>
+              </div>
               <div className="mt-8">
                 <h2 className="text-2xl font-poppins font-semibold text-[#4D96FF] mb-4">Live Raffles</h2>
                 {liveRaffles.length > 0 ? (

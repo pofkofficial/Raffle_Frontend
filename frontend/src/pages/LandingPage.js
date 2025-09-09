@@ -55,9 +55,18 @@ const LandingPage = () => {
         onHoverEnd={() => setConfetti(false)}
       >
         <div className="bg-[#4D96FF] p-4 flex justify-center items-center mb-6 rounded-t-2xl"></div>
-        <h1 className="text-5xl font-poppins font-bold text-[#4D96FF] mb-4">
-          Try Ur Luck
-        </h1>
+        <div className="flex items-center justify-center">
+          <img
+            src="/logo.png"
+            alt="Try Ur Luck Logo"
+            className="h-24 w-auto "
+            onError={(e) => {
+              console.error('Logo failed to load');
+              e.target.src = '/fallback-logo.png';
+            }}
+          />
+        </div>
+        
         <p className="text-2xl text-gray-700 dark:text-gray-200">
           Where Every Ticket Holds a Dream
         </p>

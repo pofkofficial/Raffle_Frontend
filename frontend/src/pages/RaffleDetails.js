@@ -163,7 +163,7 @@ const RaffleDetails = () => {
       >
         <div className="bg-[#4D96FF] p-4 flex justify-center items-center">
           <img
-            src="/logo-placeholder.png"
+            src="/logo.png"
             alt="Raffle Hub Logo"
             className="h-16 w-auto"
             onError={(e) => (e.target.src = '/fallback-logo.png')}

@@ -92,8 +92,8 @@ const TicketDownload = () => {
       >
         <div className="bg-[#4D96FF] p-4 flex justify-center items-center">
           <img
-            src="/logo-placeholder.png"
-            alt="Raffle Hub Logo"
+            src="/logo.png"
+            alt="Try Ur Luck Logo"
             className="h-16 w-auto"
             onError={(e) => (e.target.src = '/fallback-logo.png')}
           />
