@@ -10,7 +10,7 @@ const AdminLogin = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [showConfetti, setShowConfetti] = useState(false);
-  const BACKEND = process.env.BACKEND_LINK;
+  const BACKEND = process.env.REACT_APP_BACKEND_LINK;
 
   const handleLogin = async (e) => {
     e.preventDefault();

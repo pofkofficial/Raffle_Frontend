@@ -8,7 +8,7 @@ const LandingPage = () => {
   const [confetti, setConfetti] = useState(false);
   const [raffles, setRaffles] = useState([]);
   const [error, setError] = useState("");
-  const BACKEND = process.env.BACKEND_LINK;
+  const BACKEND = process.env.REACT_APP_BACKEND_LINK;
 
   useEffect(() => {
     const fetchRaffles = async () => {

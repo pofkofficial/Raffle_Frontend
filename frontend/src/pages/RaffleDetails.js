@@ -19,7 +19,7 @@ const RaffleDetails = () => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [showWinnerModal, setShowWinnerModal] = useState(false);
   const isAdmin = !!localStorage.getItem('adminToken');
-  const BACKEND = process.env.BACKEND_LINK;
+  const BACKEND = process.env.REACT_APP_BACKEND_LINK;
 
   useEffect(() => {
     const fetchRaffle = async () => {
@@ -43,7 +43,7 @@ const RaffleDetails = () => {
     fetchRaffle();
   }, [id, BACKEND]);
 
-  const publicKey = process.env.MAIN_PAYSTACK;
+  const publicKey = process.env.REACT_APP_MAIN_PAYSTACK;
   const componentProps = {
     email,
     amount: raffle?.ticketPrice * quantity * 100,

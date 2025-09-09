@@ -24,7 +24,7 @@ const AdminDashboard = () => {
     totalTicketsSold: 0,
     earningsByMonth: {},
   });
-  const BACKEND = process.env.BACKEND_LINK;
+  const BACKEND = process.env.REACT_APP_BACKEND_LINK;
 
   useEffect(() => {
     if (!localStorage.getItem('adminToken')) {
