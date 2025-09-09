@@ -200,7 +200,10 @@ const AdminDashboard = () => {
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 <p className="text-gray-700 dark:text-gray-200 text-base sm:text-lg">
-                  <span className="font-semibold">Cash Prize:</span> GHS {raffle.cashPrize || 'N/A'}
+                  <span className="font-semibold">Prize:</span>{" "}
+                  {raffle.prizeTypes.includes('cash') && `GHS ${raffle.cashPrize || 'N/A'}`}
+                  {raffle.prizeTypes.includes('cash') && raffle.prizeTypes.includes('item') && ' + '}
+                  {raffle.prizeTypes.includes('item') && (raffle.itemName || 'N/A')}
                 </p>
                 <p className="text-gray-700 dark:text-gray-200 text-base sm:text-lg">
                   <span className="font-semibold">Ticket Price:</span> GHS {raffle.ticketPrice}
