@@ -220,7 +220,7 @@ const AdminDashboard = () => {
         className="max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden"
       >
         <div className="bg-[#4D96FF] p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-          <Link to= "/" className="flex items-center justify-center sm:justify-start gap-2">
+          <Link to= "/admin" className="flex items-center justify-center sm:justify-start gap-2">
             <img
               src="/logo.png"
               alt="Try Ur Luck Logo"
