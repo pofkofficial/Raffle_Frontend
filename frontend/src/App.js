@@ -7,6 +7,7 @@ import ContactUs from './pages/ContactUs';
 import AdminLogin from './pages/AdminLogin';
 import CreateRaffle from './pages/CreateRaffle';
 import Home from './pages/LandingPage';
+import Footer from './components/Footer';
 
 const App = () => {
   return (
@@ -22,6 +23,7 @@ const App = () => {
         <Route path="/contact" element={<ContactUs />} />
         <Route path="/about" element={<AboutUs />} />
       </Routes>
+      <Footer />
     </Router>
   );
 };
