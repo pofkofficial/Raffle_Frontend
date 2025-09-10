@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ConfettiBurst from '../components/ConfettiBurst';
 import Winner from '../components/Winner';
 import { saveAs } from 'file-saver';
+import { Link } from 'react-router-dom';
 
 const AdminDashboard = () => {
   const { id } = useParams();
@@ -219,7 +220,7 @@ const AdminDashboard = () => {
         className="max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden"
       >
         <div className="bg-[#4D96FF] p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-          <div className="flex items-center justify-center sm:justify-start gap-2">
+          <Link to= "/" className="flex items-center justify-center sm:justify-start gap-2">
             <img
               src="/logo.png"
               alt="Try Ur Luck Logo"
@@ -230,7 +231,7 @@ const AdminDashboard = () => {
               }}
             />
             <h1 className="text-lg sm:text-2xl font-poppins font-bold text-white">Admin Dashboard</h1>
-          </div>
+          </Link>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
             <motion.button
               whileHover={{ scale: 1.05 }}

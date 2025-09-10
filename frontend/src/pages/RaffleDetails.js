@@ -4,6 +4,7 @@ import axios from 'axios';
 import { PaystackButton } from 'react-paystack';
 import CountdownTimer from '../components/CountdownTimer';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import ConfettiBurst from '../components/ConfettiBurst';
 import Winner from '../components/Winner';
 
@@ -158,7 +159,7 @@ const RaffleDetails = () => {
         transition={{ duration: 0.5 }}
         className="max-w-[90%] sm:max-w-lg md:max-w-xl lg:max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden"
       >
-        <div className="bg-[#4D96FF] p-3 sm:p-4 flex justify-center items-center space-x-2">
+        <Link to="/" className="bg-[#4D96FF] p-3 sm:p-4 flex justify-center items-center space-x-2">
           <img
             src="/logo.png"
             alt="Try Ur Luck Logo"
@@ -166,7 +167,7 @@ const RaffleDetails = () => {
             onError={(e) => (e.target.src = '/fallback-logo.png')}
           />
           <h1 className="text-white text-lg sm:text-xl font-poppins font-bold">Try Ur Luck</h1>
-        </div>
+        </Link>
         <div className="p-4 sm:p-6">
           {raffle.prizeImage && (
             <div className="relative w-full aspect-[3/2] mb-4 sm:mb-6 rounded-lg overflow-hidden">

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import ConfettiBurst from '../components/ConfettiBurst';
 
@@ -123,7 +124,7 @@ const CreateRaffle = () => {
         transition={{ duration: 0.5 }}
         className="max-w-[90%] sm:max-w-lg md:max-w-xl lg:max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden"
       >
-        <div className="bg-[#4D96FF] p-3 sm:p-4 flex justify-center items-center mb-4 sm:mb-6 rounded-t-2xl space-x-2">
+        <Link to="/" className="bg-[#4D96FF] p-3 sm:p-4 flex justify-center items-center mb-4 sm:mb-6 rounded-t-2xl space-x-2">
           <img
             src="/logo.png"
             alt="Try Ur Luck Logo"
@@ -134,7 +135,7 @@ const CreateRaffle = () => {
             }}
           />
           <h1 className="text-white text-lg sm:text-xl font-poppins font-bold">Try Ur Luck</h1>
-        </div>
+        </Link>
         <div className="p-4 sm:p-6">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-poppins font-bold text-[#FF6B6B] mb-4 sm:mb-6 text-center">
             Create New Raffle

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { QRCodeCanvas } from 'qrcode.react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import ConfettiBurst from '../components/ConfettiBurst';
 import axios from 'axios';
 
@@ -92,7 +93,7 @@ const TicketDownload = () => {
         transition={{ duration: 0.5 }}
         className="max-w-[90%] sm:max-w-sm md:max-w-md mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden"
       >
-        <div className="bg-[#4D96FF] p-3 sm:p-4 flex justify-center items-center space-x-2">
+        <Link to="/" className="bg-[#4D96FF] p-3 sm:p-4 flex justify-center items-center space-x-2">
           <img
             src="/logo.png"
             alt="Try Ur Luck Logo"
@@ -100,7 +101,7 @@ const TicketDownload = () => {
             onError={(e) => (e.target.src = '/fallback-logo.png')}
           />
           <h1 className="text-white text-lg sm:text-xl font-poppins font-bold">Try Ur Luck</h1>
-        </div>
+        </Link>
         <div className="p-4 sm:p-6 text-center">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-poppins font-bold text-[#4D96FF] mb-3 sm:mb-4">
             🎉 Ticket Secured!

@@ -102,7 +102,7 @@ const LandingPage = () => {
         className="text-center mb-6 sm:mb-8"
         onClick={() => setConfetti(true)}
       >
-        <div className="bg-[#4D96FF] p-3 sm:p-4 flex justify-center items-center mb-4 sm:mb-6 rounded-t-2xl space-x-2">
+        <Link to="/" className="bg-[#4D96FF] p-3 sm:p-4 flex justify-center items-center mb-4 sm:mb-6 rounded-t-2xl space-x-2">
           <img
             src="/logo.png"
             alt="Try Ur Luck Logo"
@@ -113,7 +113,7 @@ const LandingPage = () => {
             }}
           />
           <h1 className="text-white text-lg sm:text-xl font-poppins font-bold">Try Ur Luck</h1>
-        </div>
+        </Link>
         <p className="text-lg sm:text-xl md:text-2xl text-gray-700 dark:text-gray-200">
           Where Every Ticket Holds a Dream
         </p>

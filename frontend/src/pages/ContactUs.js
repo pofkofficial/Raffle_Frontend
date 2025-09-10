@@ -10,7 +10,7 @@ const ContactUs = () => {
         transition={{ duration: 0.8 }}
         className="text-center mb-6 sm:mb-8"
       >
-        <div className="bg-[#4D96FF] p-3 sm:p-4 flex justify-center items-center mb-4 sm:mb-6 rounded-t-2xl space-x-2">
+        <Link to="/" className="bg-[#4D96FF] p-3 sm:p-4 flex justify-center items-center mb-4 sm:mb-6 rounded-t-2xl space-x-2">
           <img
             src="/logo.png"
             alt="Try Ur Luck Logo"
@@ -21,7 +21,7 @@ const ContactUs = () => {
             }}
           />
           <h1 className="text-white text-lg sm:text-xl font-poppins font-bold">Try Ur Luck</h1>
-        </div>
+        </Link>
         <h1 className="text-xl sm:text-2xl md:text-3xl font-poppins font-semibold text-[#FF6B6B]">
           Contact Us
         </h1>

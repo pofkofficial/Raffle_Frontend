@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import ConfettiBurst from '../components/ConfettiBurst';
 
 const AdminLogin = () => {
@@ -38,7 +39,7 @@ const AdminLogin = () => {
         transition={{ duration: 0.5 }}
         className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-4 sm:p-6 max-w-[90%] sm:max-w-sm md:max-w-md w-full"
       >
-        <div className="bg-[#4D96FF] p-3 sm:p-4 flex justify-center items-center mb-4 sm:mb-6 rounded-t-2xl space-x-2">
+        <Link to="/" className="bg-[#4D96FF] p-3 sm:p-4 flex justify-center items-center mb-4 sm:mb-6 rounded-t-2xl space-x-2">
           <img
             src="/logo.png"
             alt="Try Ur Luck Logo"
@@ -49,7 +50,7 @@ const AdminLogin = () => {
             }}
           />
           <h1 className="text-white text-lg sm:text-xl font-poppins font-bold">Try Ur Luck</h1>
-        </div>
+        </Link>
         <h1 className="text-xl sm:text-2xl md:text-3xl font-poppins font-bold text-[#FF6B6B] mb-4 sm:mb-6 text-center">
           Admin Login
         </h1>
