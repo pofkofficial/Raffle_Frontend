@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import CountdownTimer from '../components/CountdownTimer';
 import { motion, AnimatePresence } from 'framer-motion';
 import ConfettiBurst from '../components/ConfettiBurst';
 import Winner from '../components/Winner';
+import { saveAs } from 'file-saver';
 
 const AdminDashboard = () => {
   const { id } = useParams();
@@ -24,6 +25,9 @@ const AdminDashboard = () => {
     totalTicketsSold: 0,
     earningsByMonth: {},
   });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [ticketFilter, setTicketFilter] = useState('all');
+  const [sortOption, setSortOption] = useState('name-asc');
   const BACKEND = process.env.REACT_APP_BACKEND_LINK;
 
   useEffect(() => {
@@ -61,7 +65,6 @@ const AdminDashboard = () => {
           setLiveRaffles(live);
           setEndedRaffles(ended);
 
-          // Calculate overview metrics
           const allRaffles = [...live, ...ended];
           const totalTicketsSold = allRaffles.reduce(
             (sum, r) => sum + (r.participants?.reduce((acc, p) => acc + p.ticketNumbers.length, 0) || 0),
@@ -92,7 +95,6 @@ const AdminDashboard = () => {
     setError(null);
 
     const participants = raffle?.participants || [];
-    // Flatten all ticket numbers with their corresponding displayNames
     const ticketEntries = participants.flatMap(p => 
       p.ticketNumbers.map(ticket => ({ ticket, displayName: p.displayName }))
     );
@@ -146,6 +148,64 @@ const AdminDashboard = () => {
     localStorage.removeItem('adminToken');
     navigate('/admin/login');
   };
+
+  const handleExportContacts = () => {
+    if (!raffle?.participants || raffle.participants.length === 0) {
+      setError('No participants to export');
+      return;
+    }
+
+    const csvHeader = 'Name,Phone,Email\n';
+    const csvRows = raffle.participants.map(p => 
+      `"${p.displayName.replace(/"/g, '""')}","${p.contact.replace(/"/g, '""')}","${p.email.replace(/"/g, '""')}"`
+    ).join('\n');
+    const csvContent = csvHeader + csvRows;
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    saveAs(blob, `raffle-${raffle._id}-contacts.csv`);
+  };
+
+  const filteredAndSortedParticipants = useMemo(() => {
+    let result = raffle?.participants ? [...raffle.participants] : [];
+
+    // Search
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      result = result.filter(
+        (p) =>
+          p.displayName.toLowerCase().includes(query) ||
+          p.contact.toLowerCase().includes(query) ||
+          p.email.toLowerCase().includes(query)
+      );
+    }
+
+    // Filter by ticket count
+    if (ticketFilter !== 'all') {
+      result = result.filter((p) => {
+        const count = p.ticketNumbers.length;
+        if (ticketFilter === '1') return count === 1;
+        if (ticketFilter === '2-5') return count >= 2 && count <= 5;
+        if (ticketFilter === '6+') return count > 5;
+        return true;
+      });
+    }
+
+    // Sort
+    result.sort((a, b) => {
+      if (sortOption === 'name-asc') {
+        return a.displayName.localeCompare(b.displayName);
+      } else if (sortOption === 'name-desc') {
+        return b.displayName.localeCompare(a.displayName);
+      } else if (sortOption === 'tickets-asc') {
+        return a.ticketNumbers.length - b.ticketNumbers.length;
+      } else if (sortOption === 'tickets-desc') {
+        return b.ticketNumbers.length - a.ticketNumbers.length;
+      }
+      return 0;
+    });
+
+    return result;
+  }, [raffle, searchQuery, ticketFilter, sortOption]);
 
   if (error) return <div className="text-red-500 text-center p-4 sm:p-8">{error}</div>;
   if (id && id !== 'undefined' && !raffle) return <div className="text-center p-4 sm:p-8">Loading...</div>;
@@ -272,6 +332,18 @@ const AdminDashboard = () => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
+                  onClick={handleExportContacts}
+                  disabled={!raffle?.participants || raffle.participants.length === 0}
+                  className={`bg-[#FFD93D] text-black px-4 py-3 rounded-lg w-full font-semibold hover:bg-[#FFCA28] transition-colors min-h-[44px] ${
+                    !raffle?.participants || raffle.participants.length === 0 ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                  aria-label="Export Participants Contacts"
+                >
+                  Export Contacts
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => navigate('/admin')}
                   className="bg-gray-600 text-white px-4 py-3 rounded-lg w-full font-semibold hover:bg-gray-700 transition-colors min-h-[44px]"
                   aria-label="Go back to admin dashboard"
@@ -281,10 +353,44 @@ const AdminDashboard = () => {
               </div>
               <div className="mt-8">
                 <h2 className="text-lg sm:text-2xl font-poppins font-semibold text-[#4D96FF] mb-4">Participants</h2>
+                <div className="mb-6 flex flex-col sm:flex-row gap-4 items-center justify-between">
+                  <input
+                    type="text"
+                    placeholder="Search by name, phone, or email..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="border border-gray-300 dark:border-gray-600 px-3 py-3 sm:py-4 w-full sm:w-1/3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm sm:text-base min-h-[44px]"
+                    aria-label="Search participants"
+                  />
+                  <div className="flex gap-4 w-full sm:w-auto">
+                    <select
+                      value={ticketFilter}
+                      onChange={(e) => setTicketFilter(e.target.value)}
+                      className="border border-gray-300 dark:border-gray-600 px-3 py-3 sm:py-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm sm:text-base min-h-[44px]"
+                      aria-label="Filter by ticket count"
+                    >
+                      <option value="all">All Tickets</option>
+                      <option value="1">1 Ticket</option>
+                      <option value="2-5">2-5 Tickets</option>
+                      <option value="6+">6+ Tickets</option>
+                    </select>
+                    <select
+                      value={sortOption}
+                      onChange={(e) => setSortOption(e.target.value)}
+                      className="border border-gray-300 dark:border-gray-600 px-3 py-3 sm:py-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm sm:text-base min-h-[44px]"
+                      aria-label="Sort participants"
+                    >
+                      <option value="name-asc">Name (A-Z)</option>
+                      <option value="name-desc">Name (Z-A)</option>
+                      <option value="tickets-asc">Tickets (Low to High)</option>
+                      <option value="tickets-desc">Tickets (High to Low)</option>
+                    </select>
+                  </div>
+                </div>
                 <AnimatePresence>
-                  {raffle.participants?.length > 0 ? (
+                  {filteredAndSortedParticipants.length > 0 ? (
                     <ul className="space-y-3 max-h-64 sm:max-h-80 overflow-y-auto">
-                      {raffle.participants.map((p, index) => (
+                      {filteredAndSortedParticipants.map((p, index) => (
                         <motion.li
                           key={`${p.email}:${p.contact}:${index}`}
                           initial={{ opacity: 0, x: -20 }}
@@ -301,12 +407,18 @@ const AdminDashboard = () => {
                             <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
                               Tickets: {p.ticketNumbers.length} ({p.ticketNumbers.join(', ')})
                             </p>
+                            <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
+                              Phone: {p.contact}
+                            </p>
+                            <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
+                              Email: {p.email}
+                            </p>
                           </div>
                         </motion.li>
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-gray-500 dark:text-gray-400 text-base sm:text-lg">No participants yet.</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-base sm:text-lg">No participants match your criteria.</p>
                   )}
                 </AnimatePresence>
               </div>
