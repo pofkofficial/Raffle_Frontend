@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import ConfettiBurst from "../components/ConfettiBurst";
 import { useState, useEffect } from "react";
 import axios from "axios";
+import CountdownTimer from '../components/CountdownTimer';
 
 const LandingPage = () => {
   const [confetti, setConfetti] = useState(false);
@@ -127,9 +128,9 @@ const LandingPage = () => {
                       <p>
                         <span className="font-semibold">Ticket:</span> GHS {raffle.ticketPrice}
                       </p>
-                      <p>
+                      <p className="text-gray-700 dark:text-gray-200 text-base sm:text-lg">
                         <span className="font-semibold">Ends:</span>{" "}
-                        {new Date(raffle.endTime).toLocaleString()}
+                        <CountdownTimer endTime={raffle.endTime} />
                       </p>
                       <p>
                         <span className="font-semibold">Participants:</span>{" "}
