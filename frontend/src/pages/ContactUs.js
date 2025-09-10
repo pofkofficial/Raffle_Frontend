@@ -37,10 +37,10 @@ const ContactUs = () => {
           Have questions or need support? Reach out to us!
         </p>
         <p className="text-gray-700 dark:text-gray-200 text-sm sm:text-base mb-4">
-          Email: <a href="mailto:support@tryurluck.com" className="text-[#4D96FF] hover:text-[#FFD93D] transition-colors">support@tryurluck.com</a>
+          Email: <a href="mailto:support@tryurluck.com" className="text-[#4D96FF] hover:text-[#FFD93D] transition-colors">admin@tryurluck.com</a>
         </p>
         <p className="text-gray-700 dark:text-gray-200 text-sm sm:text-base mb-4">
-          Phone: <a href="tel:+1234567890" className="text-[#4D96FF] hover:text-[#FFD93D] transition-colors">+1 (234) 567-890</a>
+          Phone: <a href="tel:+1234567890" className="text-[#4D96FF] hover:text-[#FFD93D] transition-colors">+233 (234) 567-890</a>
         </p>
         <Link
           to="/"
