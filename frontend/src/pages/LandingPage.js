@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import ConfettiBurst from "../components/ConfettiBurst";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import CountdownTimer from '../components/CountdownTimer';
 
@@ -9,17 +9,20 @@ const LandingPage = () => {
   const [confetti, setConfetti] = useState(false);
   const [raffles, setRaffles] = useState([]);
   const [error, setError] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [prizeTypeFilter, setPrizeTypeFilter] = useState("all");
+  const [participantFilter, setParticipantFilter] = useState("all");
+  const [sortOption, setSortOption] = useState("endTime-desc");
   const BACKEND = process.env.REACT_APP_BACKEND_LINK;
 
   useEffect(() => {
     const fetchRaffles = async () => {
       try {
-        console.log("Fetching raffles for LandingPage with" + BACKEND );
+        console.log("Fetching raffles for LandingPage with " + BACKEND);
         const response = await axios.get(`${BACKEND}/api/raffles`);
         console.log("Raffle data:", response.data);
         const activeRaffles = response.data.filter(
-          (raffle) =>
-            !raffle.winner && new Date(raffle.endTime) > new Date()
+          (raffle) => !raffle.winner && new Date(raffle.endTime) > new Date()
         );
         setRaffles(activeRaffles);
       } catch (err) {
@@ -32,6 +35,55 @@ const LandingPage = () => {
     const timer = setTimeout(() => setConfetti(false), 3000);
     return () => clearTimeout(timer);
   }, [BACKEND]);
+
+  const filteredAndSortedRaffles = useMemo(() => {
+    let result = [...raffles];
+
+    // Search
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      result = result.filter(
+        (raffle) =>
+          raffle.title.toLowerCase().includes(query) ||
+          raffle.description.toLowerCase().includes(query) ||
+          raffle._id.toLowerCase().includes(query) ||
+          (raffle.itemName && raffle.itemName.toLowerCase().includes(query)) ||
+          (raffle.prizeTypes.includes("cash") && `GHS ${raffle.cashPrize}`.toLowerCase().includes(query))
+      );
+    }
+
+    // Filter by prize type
+    if (prizeTypeFilter !== "all") {
+      result = result.filter((raffle) => raffle.prizeTypes.includes(prizeTypeFilter));
+    }
+
+    // Filter by participant count
+    if (participantFilter !== "all") {
+      result = result.filter((raffle) => {
+        const count = raffle.participants.length;
+        if (participantFilter === "0-10") return count <= 10;
+        if (participantFilter === "11-50") return count > 10 && count <= 50;
+        if (participantFilter === "51+") return count > 50;
+        return true;
+      });
+    }
+
+    // Sort
+    result.sort((a, b) => {
+      if (sortOption === "endTime-asc") {
+        return new Date(a.endTime) - new Date(b.endTime);
+      } else if (sortOption === "endTime-desc") {
+        return new Date(b.endTime) - new Date(a.endTime);
+      } else if (sortOption === "ticketPrice-asc") {
+        return a.ticketPrice - b.ticketPrice;
+      } else if (sortOption === "ticketPrice-desc") {
+        return b.ticketPrice - a.ticketPrice;
+      }
+      return 0;
+    });
+
+    return result;
+  }, [raffles, searchQuery, prizeTypeFilter, participantFilter, sortOption]);
 
   const getPrizeImageSrc = (prizeImage) => {
     if (!prizeImage) return "/fallback-image.jpg";
@@ -76,16 +128,60 @@ const LandingPage = () => {
         <h2 className="text-xl sm:text-2xl md:text-3xl font-poppins font-semibold text-[#FF6B6B] mb-4 sm:mb-6 text-center">
           Choose your preferred Raffle
         </h2>
+        <div className="mb-6 flex flex-col sm:flex-row gap-4 items-center justify-between">
+          <input
+            type="text"
+            placeholder="Search by title, ID, or prize..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="border border-gray-300 dark:border-gray-600 px-3 py-3 sm:py-4 w-full sm:w-1/3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm sm:text-base min-h-[44px]"
+            aria-label="Search raffles"
+          />
+          <div className="flex gap-4 w-full sm:w-auto">
+            <select
+              value={prizeTypeFilter}
+              onChange={(e) => setPrizeTypeFilter(e.target.value)}
+              className="border border-gray-300 dark:border-gray-600 px-3 py-3 sm:py-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm sm:text-base min-h-[44px]"
+              aria-label="Filter by prize type"
+            >
+              <option value="all">All Prize Types</option>
+              <option value="cash">Cash</option>
+              <option value="item">Item</option>
+            </select>
+            <select
+              value={participantFilter}
+              onChange={(e) => setParticipantFilter(e.target.value)}
+              className="border border-gray-300 dark:border-gray-600 px-3 py-3 sm:py-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm sm:text-base min-h-[44px]"
+              aria-label="Filter by participants"
+            >
+              <option value="all">All Participants</option>
+              <option value="0-10">0-10 Participants</option>
+              <option value="11-50">11-50 Participants</option>
+              <option value="51+">51+ Participants</option>
+            </select>
+            <select
+              value={sortOption}
+              onChange={(e) => setSortOption(e.target.value)}
+              className="border border-gray-300 dark:border-gray-600 px-3 py-3 sm:py-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm sm:text-base min-h-[44px]"
+              aria-label="Sort raffles"
+            >
+              <option value="endTime-desc">End Time (Latest First)</option>
+              <option value="endTime-asc">End Time (Earliest First)</option>
+              <option value="ticketPrice-asc">Ticket Price (Low to High)</option>
+              <option value="ticketPrice-desc">Ticket Price (High to Low)</option>
+            </select>
+          </div>
+        </div>
         {error ? (
           <div className="text-red-500 text-sm sm:text-base text-center">{error}</div>
-        ) : raffles.length === 0 ? (
+        ) : filteredAndSortedRaffles.length === 0 ? (
           <p className="text-gray-500 dark:text-gray-400 text-sm sm:text-base text-center">
-            No active raffles available. Check back soon!
+            No raffles match your criteria. Try adjusting your search or filters!
           </p>
         ) : (
           <AnimatePresence>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {raffles.map((raffle) => (
+              {filteredAndSortedRaffles.map((raffle) => (
                 <motion.div
                   key={raffle._id}
                   initial={{ opacity: 0, scale: 0.9 }}
@@ -128,7 +224,7 @@ const LandingPage = () => {
                       <p>
                         <span className="font-semibold">Ticket:</span> GHS {raffle.ticketPrice}
                       </p>
-                      <p className="text-gray-700 dark:text-gray-200 text-base sm:text-lg">
+                      <p>
                         <span className="font-semibold">Ends:</span>{" "}
                         <CountdownTimer endTime={raffle.endTime} />
                       </p>
