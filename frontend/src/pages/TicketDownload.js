@@ -14,7 +14,7 @@ const TicketDownload = () => {
   const [showConfetti, setShowConfetti] = useState(true);
   const [error, setError] = useState('');
   const ticketNumber = searchParams.get('ticketNumber');
-  const FRONTEND = process.env.REACT_APP_FRONTEND_LINK;
+  const FRONTEND = process.env.REACT_APP_FRONTEND_LINK2 | process.env.REACT_APP_FRONTEND_LINK;
   const BACKEND = process.env.REACT_APP_BACKEND_LINK;
 
   useEffect(() => {
