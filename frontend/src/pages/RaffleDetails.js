@@ -246,7 +246,8 @@ const RaffleDetails = () => {
                 type="number"
                 placeholder="Number of Tickets"
                 value={quantity}
-                onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                onChange={(e) => setQuantity(e.target.value)}
+                onBlur={() => setQuantity((prev) => (prev === '' || isNaN(parseInt(prev)) ? '1' : prev))}
                 min="1"
                 className="border border-gray-300 dark:border-gray-600 px-3 py-3 sm:py-4 w-full mb-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-base sm:text-lg min-h-[44px]"
                 required
