@@ -21,6 +21,7 @@ const AdminDashboard = () => {
   const [isSelecting, setIsSelecting] = useState(false);
   const [currentParticipant, setCurrentParticipant] = useState('');
   const [showWinnerModal, setShowWinnerModal] = useState(false);
+  const [newEndTime, setNewEndTime] = useState('');
   const [overview, setOverview] = useState({
     liveRafflesCount: 0,
     totalTicketsSold: 0,
@@ -145,6 +146,63 @@ const AdminDashboard = () => {
     }, maxCycles * 300);
   };
 
+  const handleDeleteRaffle = async () => {
+    if (!window.confirm(`Are you sure you want to delete the raffle "${raffle.title}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        setError('Admin login required');
+        return;
+      }
+      await axios.delete(`${BACKEND}/api/raffles/${id}/${secret}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      // Refresh raffle lists
+      const res = await axios.get(`${BACKEND}/api/raffles`);
+      const now = new Date();
+      setLiveRaffles(res.data.filter((r) => !r.winner && new Date(r.endTime) > now));
+      setEndedRaffles(res.data.filter((r) => r.winner || new Date(r.endTime) <= now));
+      navigate('/admin');
+    } catch (err) {
+      console.error('Delete raffle error:', err);
+      setError(`Failed to delete raffle: ${err.response?.data?.error || err.message}`);
+    }
+  };
+
+  const handleResetEndTime = async () => {
+    if (!newEndTime) {
+      setError('Please select a new end time');
+      return;
+    }
+    const newDate = new Date(newEndTime);
+    if (isNaN(newDate.getTime()) || newDate <= new Date()) {
+      setError('New end time must be a valid date in the future');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        setError('Admin login required');
+        return;
+      }
+      const response = await axios.patch(
+        `${BACKEND}/api/raffles/${id}/${secret}`,
+        { endTime: newDate.toISOString() },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setRaffle(response.data);
+      setNewEndTime('');
+      setError('');
+    } catch (err) {
+      console.error('Reset end time error:', err);
+      setError(`Failed to reset end time: ${err.response?.data?.error || err.message}`);
+    }
+  };
+
   const handleSignOut = () => {
     localStorage.removeItem('adminToken');
     navigate('/admin/login');
@@ -169,7 +227,6 @@ const AdminDashboard = () => {
   const filteredAndSortedParticipants = useMemo(() => {
     let result = raffle?.participants ? [...raffle.participants] : [];
 
-    // Search
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       result = result.filter(
@@ -180,7 +237,6 @@ const AdminDashboard = () => {
       );
     }
 
-    // Filter by ticket count
     if (ticketFilter !== 'all') {
       result = result.filter((p) => {
         const count = p.ticketNumbers.length;
@@ -191,7 +247,6 @@ const AdminDashboard = () => {
       });
     }
 
-    // Sort
     result.sort((a, b) => {
       if (sortOption === 'name-asc') {
         return a.displayName.localeCompare(b.displayName);
@@ -220,7 +275,7 @@ const AdminDashboard = () => {
         className="max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden"
       >
         <div className="bg-[#4D96FF] p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-          <Link to= "/admin" className="flex items-center justify-center sm:justify-start gap-2">
+          <Link to="/admin" className="flex items-center justify-center sm:justify-start gap-2">
             <img
               src="/logo.png"
               alt="Try Ur Luck Logo"
@@ -285,6 +340,27 @@ const AdminDashboard = () => {
                   </motion.span>
                 </p>
               </div>
+              <div className="mb-6 flex flex-col sm:flex-row gap-4 items-center">
+                <input
+                  type="datetime-local"
+                  value={newEndTime}
+                  onChange={(e) => setNewEndTime(e.target.value)}
+                  className="border border-gray-300 dark:border-gray-600 px-3 py-3 sm:py-4 w-full sm:w-1/2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm sm:text-base min-h-[44px]"
+                  aria-label="Select new end time"
+                />
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleResetEndTime}
+                  disabled={!newEndTime || raffle.winner || new Date(raffle.endTime) <= new Date()}
+                  className={`bg-[#FFD93D] text-black px-4 py-3 rounded-lg w-full sm:w-auto font-semibold hover:bg-[#FFCA28] transition-colors min-h-[44px] ${
+                    !newEndTime || raffle.winner || new Date(raffle.endTime) <= new Date() ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                  aria-label="Reset End Time"
+                >
+                  Reset End Time
+                </motion.button>
+              </div>
               <AnimatePresence>
                 {isSelecting && (
                   <motion.div
@@ -341,6 +417,15 @@ const AdminDashboard = () => {
                   aria-label="Export Participants Contacts"
                 >
                   Export Contacts
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleDeleteRaffle}
+                  className="bg-red-600 text-white px-4 py-3 rounded-lg w-full font-semibold hover:bg-red-700 transition-colors min-h-[44px]"
+                  aria-label="Delete Raffle"
+                >
+                  Delete Raffle
                 </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
