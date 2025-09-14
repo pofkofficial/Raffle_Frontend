@@ -11,7 +11,6 @@ const LandingPage = () => {
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [prizeTypeFilter, setPrizeTypeFilter] = useState("all");
-  const [participantFilter, setParticipantFilter] = useState("all");
   const [sortOption, setSortOption] = useState("endTime-desc");
   const BACKEND = process.env.REACT_APP_BACKEND_LINK;
 
@@ -55,17 +54,6 @@ const LandingPage = () => {
       result = result.filter((raffle) => raffle.prizeTypes.includes(prizeTypeFilter));
     }
 
-    // Filter by participant count
-    if (participantFilter !== "all") {
-      result = result.filter((raffle) => {
-        const count = raffle.participants.length;
-        if (participantFilter === "0-10") return count <= 10;
-        if (participantFilter === "11-50") return count > 10 && count <= 50;
-        if (participantFilter === "51+") return count > 50;
-        return true;
-      });
-    }
-
     // Sort
     result.sort((a, b) => {
       if (sortOption === "endTime-asc") {
@@ -81,7 +69,7 @@ const LandingPage = () => {
     });
 
     return result;
-  }, [raffles, searchQuery, prizeTypeFilter, participantFilter, sortOption]);
+  }, [raffles, searchQuery, prizeTypeFilter, sortOption]);
 
   const getPrizeImageSrc = (raffle) => {
     if (!raffle.prizeImage) return "/fallback-image.jpg";
