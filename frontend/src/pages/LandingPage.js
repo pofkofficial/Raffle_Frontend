@@ -152,17 +152,6 @@ const LandingPage = () => {
               <option value="item">Item</option>
             </select>
             <select
-              value={participantFilter}
-              onChange={(e) => setParticipantFilter(e.target.value)}
-              className="border border-gray-300 dark:border-gray-600 px-3 py-3 xs:py-4 w-full xs:w-auto flex-1 min-w-[120px] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-base min-h-[48px]"
-              aria-label="Filter by participants"
-            >
-              <option value="all">All Participants</option>
-              <option value="0-10">0-10 Participants</option>
-              <option value="11-50">11-50 Participants</option>
-              <option value="51+">51+ Participants</option>
-            </select>
-            <select
               value={sortOption}
               onChange={(e) => setSortOption(e.target.value)}
               className="border border-gray-300 dark:border-gray-600 px-3 py-3 xs:py-4 w-full xs:w-auto flex-1 min-w-[120px] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-base min-h-[48px]"
