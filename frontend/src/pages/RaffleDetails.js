@@ -29,9 +29,7 @@ const RaffleDetails = () => {
         return;
       }
       try {
-        console.log(`Fetching raffle with ID: ${id}`);
         const response = await axios.get(`${BACKEND}/api/raffles/${id}`);
-        console.log('Raffle data:', response.data);
         setRaffle(response.data);
         if (response.data.winner || new Date(response.data.endTime) <= new Date()) {
           setShowWinnerModal(true);
@@ -202,18 +200,6 @@ const RaffleDetails = () => {
             <p className="text-gray-700 dark:text-gray-200 text-base sm:text-lg">
               <span className="font-semibold">Ends:</span>{" "}
               <CountdownTimer endTime={raffle.endTime} />
-            </p>
-            <p className="text-gray-700 dark:text-gray-200 text-base sm:text-lg">
-              <span className="font-semibold">Participants:</span>{' '}
-              <motion.span
-                key={raffle.participants.length}
-                initial={{ scale: 1.2 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 0.3 }}
-                className="text-[#6BCB77] font-bold"
-              >
-                {uniqueParticipants.length}
-              </motion.span>
             </p>
           </div>
           {!isAdmin && isRaffleActive && (

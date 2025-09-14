@@ -236,12 +236,6 @@ const LandingPage = () => {
                           <span className="font-semibold">Ends:</span>{" "}
                           <CountdownTimer endTime={raffle.endTime} />
                         </p>
-                        <p>
-                          <span className="font-semibold">Participants:</span>{" "}
-                          <span className="text-[#6BCB77] font-bold">
-                            {raffle.participants.length}
-                          </span>
-                        </p>
                       </div>
                     </Link>
                   </motion.div>
