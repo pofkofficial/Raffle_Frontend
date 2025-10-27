@@ -9,24 +9,30 @@ const LandingPage = () => {
   const [confetti, setConfetti] = useState(false);
   const [raffles, setRaffles] = useState([]);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(true); // New loading state
   const [searchQuery, setSearchQuery] = useState("");
   const [prizeTypeFilter, setPrizeTypeFilter] = useState("all");
   const [sortOption, setSortOption] = useState("endTime-desc");
   const BACKEND = process.env.REACT_APP_BACKEND_LINK;
 
+  const fetchRaffles = async () => {
+    setIsLoading(true); // Start loading
+    setError(""); // Clear previous errors
+    try {
+      const response = await axios.get(`${BACKEND}/api/raffles`);
+      const activeRaffles = response.data.filter(
+        (raffle) => !raffle.winner && new Date(raffle.endTime) > new Date()
+      );
+      setRaffles(activeRaffles);
+    } catch (err) {
+      console.error("Error fetching raffles:", err.response?.data || err.message);
+      setError(`Failed to load raffles: ${err.response?.data?.error || "Network error, please try again"}`);
+    } finally {
+      setIsLoading(false); // Stop loading
+    }
+  };
+
   useEffect(() => {
-    const fetchRaffles = async () => {
-      try {
-        const response = await axios.get(`${BACKEND}/api/raffles`);
-        const activeRaffles = response.data.filter(
-          (raffle) => !raffle.winner && new Date(raffle.endTime) > new Date()
-        );
-        setRaffles(activeRaffles);
-      } catch (err) {
-        console.error("Error fetching raffles:", err.response?.data || err.message);
-        setError(`Failed to load raffles: ${err.response?.data?.error || err.message}`);
-      }
-    };
     fetchRaffles();
 
     const timer = setTimeout(() => setConfetti(false), 3000);
@@ -153,9 +159,23 @@ const LandingPage = () => {
           </div>
         </div>
         <div aria-live="polite">
-          {error ? (
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center p-4 sm:p-6">
+              <div className="w-12 h-12 border-4 border-t-[#4D96FF] border-gray-200 dark:border-gray-600 rounded-full animate-spin"></div>
+              <p className="mt-4 text-base sm:text-lg text-gray-700 dark:text-gray-200">
+                Loading raffles, please wait...
+              </p>
+            </div>
+          ) : error ? (
             <div className="text-red-500 text-base sm:text-lg text-center p-4 sm:p-6 bg-red-50 dark:bg-red-900/20 rounded-lg">
-              {error}
+              <p>{error}</p>
+              <button
+                onClick={fetchRaffles}
+                className="mt-4 px-4 py-2 bg-[#4D96FF] text-white rounded-lg hover:bg-[#3b82f6] focus:outline-none focus:ring-2 focus:ring-[#4D96FF] transition"
+                aria-label="Retry loading raffles"
+              >
+                Retry
+              </button>
             </div>
           ) : filteredAndSortedRaffles.length === 0 ? (
             <p className="text-gray-500 dark:text-gray-400 text-base sm:text-lg text-center p-4 sm:p-6">
