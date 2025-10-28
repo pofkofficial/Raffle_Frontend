@@ -198,7 +198,11 @@ const LandingPage = () => {
             </div>
           ) : (
             <AnimatePresence>
-              <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 xs:gap-6 sm:gap-8">
+              <div className="grid grid-cols-2 gap-4 
+                 xs:gap-5 
+                 sm:grid-cols-2 sm:gap-6 
+                 md:grid-cols-3 md:gap-7 
+                 lg:grid-cols-4 lg:gap-8">
                 {filteredAndSortedRaffles.map((raffle) => (
                   <motion.div
                     key={raffle._id}
@@ -206,13 +210,18 @@ const LandingPage = () => {
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ duration: 0.3 }}
-                    className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 xs:p-5 sm:p-6 hover:shadow-xl transition-all duration-300 min-w-[280px] w-full border border-gray-100 dark:border-gray-700"
+                    className="bg-white dark:bg-gray-800 
+                              rounded-xl shadow-lg 
+                              p-4 xs:p-5 sm:p-6 
+                              hover:shadow-xl transition-all duration-300 
+                              w-full border border-gray-100 dark:border-gray-700"
                   >
                     <Link
                       to={`/raffle/${raffle._id}`}
                       className="block"
                       aria-label={`View raffle ${raffle.title}`}
                     >
+                      {/* Prize Image */}
                       {raffle.prizeImage && (
                         <div className="relative w-full aspect-square mb-4 xs:mb-5 sm:mb-6 rounded-lg overflow-hidden shadow-md">
                           <img
@@ -225,12 +234,18 @@ const LandingPage = () => {
                           />
                         </div>
                       )}
+
+                      {/* Title */}
                       <h3 className="text-base xs:text-lg sm:text-xl font-poppins font-bold text-[#4D96FF] mb-2 line-clamp-1">
                         {raffle.title}
                       </h3>
+
+                      {/* Description */}
                       <p className="text-gray-600 dark:text-gray-300 text-sm xs:text-base mb-3 line-clamp-2">
                         {raffle.description}
                       </p>
+
+                      {/* Details */}
                       <div className="text-sm xs:text-base text-gray-700 dark:text-gray-200 space-y-1.5">
                         <p className="font-semibold text-[#FF6B6B]">
                           Prize:
