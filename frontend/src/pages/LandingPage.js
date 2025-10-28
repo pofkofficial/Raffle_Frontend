@@ -9,17 +9,17 @@ const LandingPage = () => {
   const [confetti, setConfetti] = useState(false);
   const [raffles, setRaffles] = useState([]);
   const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(true); // New loading state
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [prizeTypeFilter, setPrizeTypeFilter] = useState("all");
   const [sortOption, setSortOption] = useState("endTime-desc");
   const BACKEND = process.env.REACT_APP_BACKEND_LINK;
 
   const fetchRaffles = async () => {
-    setIsLoading(true); // Start loading
-    setError(""); // Clear previous errors
+    setIsLoading(true);
+    setError("");
     try {
-      const response = await axios.get(`${BACKEND}/api/raffles`);
+      const response = await axios.get(`${BACKEND}/api/raffles`, { timeout: 10000 });
       const activeRaffles = response.data.filter(
         (raffle) => !raffle.winner && new Date(raffle.endTime) > new Date()
       );
@@ -28,7 +28,7 @@ const LandingPage = () => {
       console.error("Error fetching raffles:", err.response?.data || err.message);
       setError(`Failed to load raffles: ${err.response?.data?.error || "Network error, please try again"}`);
     } finally {
-      setIsLoading(false); // Stop loading
+      setIsLoading(false);
     }
   };
 
@@ -37,7 +37,7 @@ const LandingPage = () => {
 
     const timer = setTimeout(() => setConfetti(false), 3000);
     return () => clearTimeout(timer);
-  }, [BACKEND]);
+  }, [BACKEND, fetchRaffles]); // Added fetchRaffles to dependency array
 
   const filteredAndSortedRaffles = useMemo(() => {
     let result = [...raffles];
