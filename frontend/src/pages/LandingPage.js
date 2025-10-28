@@ -37,7 +37,7 @@ const LandingPage = () => {
 
     const timer = setTimeout(() => setConfetti(false), 3000);
     return () => clearTimeout(timer);
-  }, [BACKEND, fetchRaffles]); // Added fetchRaffles to dependency array
+  }); // Added fetchRaffles to dependency array
 
   const filteredAndSortedRaffles = useMemo(() => {
     let result = [...raffles];
