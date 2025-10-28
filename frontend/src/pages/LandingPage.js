@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import ConfettiBurst from "../components/ConfettiBurst";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import axios from "axios";
 import CountdownTimer from '../components/CountdownTimer';
 
@@ -15,7 +15,7 @@ const LandingPage = () => {
   const [sortOption, setSortOption] = useState("endTime-desc");
   const BACKEND = process.env.REACT_APP_BACKEND_LINK;
 
-  const fetchRaffles = async () => {
+  const fetchRaffles = useCallback(async () => {
     setIsLoading(true);
     setError("");
     try {
@@ -26,18 +26,23 @@ const LandingPage = () => {
       setRaffles(activeRaffles);
     } catch (err) {
       console.error("Error fetching raffles:", err.response?.data || err.message);
-      setError(`Failed to load raffles: ${err.response?.data?.error || "Network error, please try again"}`);
+      const errorMsg = err.code === 'ECONNABORTED'
+        ? "Request timed out. Please try again."
+        : err.message === 'Network Error'
+        ? "Network error. Check your connection."
+        : err.response?.data?.error || err.message || "Unknown error";
+      setError(`Failed to load raffles: ${errorMsg}`);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [BACKEND]);
 
   useEffect(() => {
     fetchRaffles();
 
     const timer = setTimeout(() => setConfetti(false), 3000);
     return () => clearTimeout(timer);
-  }); // Added fetchRaffles to dependency array
+  }, [fetchRaffles]); // Only re-run if fetchRaffles changes (stable via useCallback)
 
   const filteredAndSortedRaffles = useMemo(() => {
     let result = [...raffles];
@@ -87,6 +92,7 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col items-center p-4 xs:p-6 sm:p-8">
+      {/* Header with Logo & Tagline */}
       <motion.div
         initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
@@ -116,6 +122,7 @@ const LandingPage = () => {
         </p>
       </motion.div>
 
+      {/* Main Content */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -125,6 +132,8 @@ const LandingPage = () => {
         <h2 className="text-lg xs:text-xl sm:text-2xl md:text-3xl font-poppins font-semibold text-[#FF6B6B] mb-4 xs:mb-6 sm:mb-8 text-center">
           Choose Your Preferred Raffle
         </h2>
+
+        {/* Search & Filters */}
         <div className="mb-6 xs:mb-8 sm:mb-10 flex flex-col gap-4 xs:gap-6 w-full">
           <input
             type="text"
@@ -158,29 +167,35 @@ const LandingPage = () => {
             </select>
           </div>
         </div>
+
+        {/* Loading / Error / Raffles */}
         <div aria-live="polite">
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center p-4 sm:p-6">
-              <div className="w-12 h-12 border-4 border-t-[#4D96FF] border-gray-200 dark:border-gray-600 rounded-full animate-spin"></div>
-              <p className="mt-4 text-base sm:text-lg text-gray-700 dark:text-gray-200">
+            <div className="flex flex-col items-center justify-center p-8 sm:p-12">
+              <div className="w-16 h-16 border-4 border-t-[#4D96FF] border-gray-200 dark:border-gray-600 rounded-full animate-spin"></div>
+              <p className="mt-6 text-lg sm:text-xl text-gray-700 dark:text-gray-200 font-medium">
                 Loading raffles, please wait...
               </p>
             </div>
           ) : error ? (
-            <div className="text-red-500 text-base sm:text-lg text-center p-4 sm:p-6 bg-red-50 dark:bg-red-900/20 rounded-lg">
-              <p>{error}</p>
+            <div className="text-center p-6 sm:p-8 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800">
+              <p className="text-red-600 dark:text-red-400 text-base sm:text-lg mb-4">
+                {error}
+              </p>
               <button
                 onClick={fetchRaffles}
-                className="mt-4 px-4 py-2 bg-[#4D96FF] text-white rounded-lg hover:bg-[#3b82f6] focus:outline-none focus:ring-2 focus:ring-[#4D96FF] transition"
+                className="px-6 py-3 bg-[#4D96FF] text-white font-medium rounded-lg hover:bg-[#3b82f6] focus:outline-none focus:ring-4 focus:ring-[#4D96FF]/50 transition shadow-md"
                 aria-label="Retry loading raffles"
               >
                 Retry
               </button>
             </div>
           ) : filteredAndSortedRaffles.length === 0 ? (
-            <p className="text-gray-500 dark:text-gray-400 text-base sm:text-lg text-center p-4 sm:p-6">
-              No raffles match your criteria. Try adjusting your search or filters!
-            </p>
+            <div className="text-center p-8 sm:p-12">
+              <p className="text-gray-500 dark:text-gray-400 text-lg sm:text-xl">
+                No raffles match your criteria. Try adjusting your search or filters!
+              </p>
+            </div>
           ) : (
             <AnimatePresence>
               <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 xs:gap-6 sm:gap-8">
@@ -191,7 +206,7 @@ const LandingPage = () => {
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ duration: 0.3 }}
-                    className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 xs:p-5 sm:p-6 hover:shadow-lg transition-shadow min-w-[280px] w-full"
+                    className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 xs:p-5 sm:p-6 hover:shadow-xl transition-all duration-300 min-w-[280px] w-full border border-gray-100 dark:border-gray-700"
                   >
                     <Link
                       to={`/raffle/${raffle._id}`}
@@ -199,36 +214,35 @@ const LandingPage = () => {
                       aria-label={`View raffle ${raffle.title}`}
                     >
                       {raffle.prizeImage && (
-                        <div className="relative w-full aspect-square mb-3 xs:mb-4 sm:mb-5 rounded-lg overflow-hidden">
+                        <div className="relative w-full aspect-square mb-4 xs:mb-5 sm:mb-6 rounded-lg overflow-hidden shadow-md">
                           <img
                             src={getPrizeImageSrc(raffle)}
                             alt={raffle.title}
-                            className="w-full h-full object-cover rounded-lg"
+                            className="w-full h-full object-cover rounded-lg transition-transform duration-300 hover:scale-105"
                             onError={(e) => {
-                              console.error("Prize image failed to load for raffle:", raffle._id);
                               e.target.src = "/fallback-image.jpg";
                             }}
                           />
                         </div>
                       )}
-                      <h3 className="text-base xs:text-lg sm:text-xl font-poppins font-semibold text-[#4D96FF] mb-2 sm:mb-3">
+                      <h3 className="text-base xs:text-lg sm:text-xl font-poppins font-bold text-[#4D96FF] mb-2 line-clamp-1">
                         {raffle.title}
                       </h3>
-                      <p className="text-gray-600 dark:text-gray-200 text-sm xs:text-base sm:text-base mb-2 sm:mb-3 line-clamp-2">
+                      <p className="text-gray-600 dark:text-gray-300 text-sm xs:text-base mb-3 line-clamp-2">
                         {raffle.description}
                       </p>
-                      <div className="text-sm xs:text-base sm:text-base text-gray-700 dark:text-gray-200 space-y-1">
-                        <p className="font-semibold">
+                      <div className="text-sm xs:text-base text-gray-700 dark:text-gray-200 space-y-1.5">
+                        <p className="font-semibold text-[#FF6B6B]">
                           Prize:
                           {raffle.prizeTypes.includes("cash") && ` GHS ${raffle.cashPrize || "N/A"}`}
                           {raffle.prizeTypes.includes("cash") && raffle.prizeTypes.includes("item") && " + "}
-                          {raffle.prizeTypes.includes("item") && (raffle.itemName || "N/A")}
+                          {raffle.prizeTypes.includes("item") && ` ${raffle.itemName || "N/A"}`}
                         </p>
                         <p>
-                          <span className="font-semibold">Ticket:</span> GHS {raffle.ticketPrice}
+                          <span className="font-medium">Ticket:</span> GHS {raffle.ticketPrice}
                         </p>
-                        <p>
-                          <span className="font-semibold">Ends:</span>{" "}
+                        <p className="flex items-center gap-1">
+                          <span className="font-medium">Ends:</span>
                           <CountdownTimer endTime={raffle.endTime} />
                         </p>
                       </div>
