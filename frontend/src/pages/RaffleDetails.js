@@ -42,6 +42,11 @@ const RaffleDetails = () => {
     fetchRaffle();
   }, [id, BACKEND]);
 
+  const sanitizePhone = (value, maxLength = 10) => {
+    const digits = value.replace(/\D/g, "");     // remove everything except 0-9
+    return digits.slice(0, maxLength);          // optional max length
+  };
+
   const publicKey = process.env.REACT_APP_MAIN_PAYSTACK;
   const componentProps = {
     email,
@@ -213,14 +218,24 @@ const RaffleDetails = () => {
                 aria-label="Display Name"
               />
               <input
+                type="tel"                                          // better semantics for phones
+                inputMode="numeric"                                 // mobile keyboard = numbers
                 placeholder="Contact Number"
                 value={contact}
-                onChange={(e) => setContact(e.target.value)}
-                className="border border-gray-300 dark:border-gray-600 px-3 py-3 sm:py-4 w-full mb-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-base sm:text-lg min-h-[44px]"
+                onChange={(e) => setContact(sanitizePhone(e.target.value))}
+                className="border border-gray-300 dark:border-gray-600 
+                          px-3 py-3 sm:py-4 w-full mb-3 
+                          rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4D96FF] 
+                          bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 
+                          text-base sm:text-lg min-h-[44px]"
                 required
                 aria-label="Contact Number"
+                // optional: pattern for HTML5 validation
+                pattern="[0-9]{1,15}"
+                title="Please enter a valid phone number (digits only)"
               />
               <input
+                type='email'
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
